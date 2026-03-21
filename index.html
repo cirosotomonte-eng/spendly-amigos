@@ -11,13 +11,20 @@
 <title>Spendly — Expense Tracker</title>
 <link rel="manifest" id="pwaManifest">
 <script>
-// Supabase loader — dynamically inject so we can wait for it reliably
-(function() {
+// ─────────────────────────────────────────────────────────────────────────────
+// SPENDLY MODE — change this ONE line when deploying to friends repo
+// ⚠️  'cloud' = Supabase auth + sync (your personal version)
+// ⚠️  'local' = localStorage only, no accounts (friends version)
+// ─────────────────────────────────────────────────────────────────────────────
+const SPENDLY_MODE = 'local';
+
+// Only load Supabase SDK in cloud mode
+if (SPENDLY_MODE === 'cloud') {
   const s = document.createElement('script');
   s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
   s.id = 'sbScript';
   document.head.appendChild(s);
-})();
+}
 </script>
 <script>
 const manifestData = { name:"Spendly — Expense Tracker", short_name:"Spendly", start_url:"./", display:"standalone", background_color:"#0f0f0f", theme_color:"#0f0f0f", orientation:"any" };
@@ -26,7 +33,7 @@ document.getElementById('pwaManifest').href = URL.createObjectURL(mblob);
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  const APP_VER = '1.4.1-202603211229';
+  const APP_VER = '1.5.1-202603211938';
   const swCode = `
 const CACHE = 'spendly-${APP_VER}';
 const VERSION = '${APP_VER}';
@@ -253,6 +260,19 @@ async function applyUpdate() {
   .auth-error { font-size:13px;color:var(--red);text-align:center;min-height:18px;margin-bottom:8px;line-height:1.4; }
   .auth-hint { font-size:12px;color:var(--muted);text-align:center;line-height:1.5;margin-top:4px; }
 
+  /* Tab customise */
+  .tab-config-item { display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--surface); border-radius:var(--r); margin-bottom:6px; cursor:grab; touch-action:none; user-select:none; }
+  .tab-config-item.dragging { opacity:0.4; cursor:grabbing; }
+  .tab-config-item.drag-over { border:2px dashed var(--accent); }
+  .tab-config-drag { color:var(--muted); font-size:16px; flex-shrink:0; }
+  .tab-config-toggle { width:44px; height:26px; border-radius:100px; border:none; cursor:pointer; position:relative; flex-shrink:0; transition:background 0.2s; }
+  .tab-config-toggle.on { background:var(--accent); }
+  .tab-config-toggle.off { background:var(--surface3); }
+  .tab-config-toggle::after { content:''; position:absolute; width:20px; height:20px; border-radius:50%; background:#fff; top:3px; transition:left 0.2s; }
+  .tab-config-toggle.on::after { left:21px; }
+  .tab-config-toggle.off::after { left:3px; }
+  .tab-config-locked { font-size:11px; color:var(--muted); flex-shrink:0; }
+
   /* Analytics */
   .chart-container { position: relative; width: 100%; height: 180px; margin-bottom: 16px; }
   .donut-wrap { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; }
@@ -349,7 +369,7 @@ async function applyUpdate() {
     -webkit-tap-highlight-color: transparent;
   }
   .numpad-btn:active { background: var(--surface3); transform: scale(0.93); }
-  .numpad-btn.action { font-size: 14px; color: var(--muted); background: none; }
+  .numpad-btn.action { font-size: 22px; color: var(--muted); background: none; }
   .numpad-btn.action:active { background: var(--surface2); }
   .lock-biometric-btn {
     margin-top: 20px; background: none; border: none;
@@ -432,6 +452,10 @@ async function applyUpdate() {
   @keyframes orb3 {
     0%,100% { transform: translate(0,0); }
     50% { transform: translate(-15px,15px); }
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
   #launchScreen { -webkit-transform: translateZ(0); }
 
@@ -751,19 +775,11 @@ async function applyUpdate() {
 
   <div id="cycleStats"></div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('expenses')"><span class="tab-icon">💸</span>Expenses</button>
-    <button class="tab" onclick="switchTab('goals')"><span class="tab-icon">🎯</span>Budget</button>
-    <button class="tab" onclick="switchTab('savings')"><span class="tab-icon">💰</span>Savings</button>
-    <button class="tab" onclick="switchTab('recycling')"><span class="tab-icon">♻️</span>Recycling</button>
-    <button class="tab" onclick="switchTab('mortgage')"><span class="tab-icon">🏠</span>Mortgage</button>
-    <button class="tab" onclick="switchTab('tax')"><span class="tab-icon">🧾</span>Tax</button>
-    <button class="tab" onclick="switchTab('giftcards')"><span class="tab-icon">🎁</span>Wallet</button>
-    <button class="tab" onclick="switchTab('portfolio')"><span class="tab-icon">📈</span>Portfolio</button>
-    <button class="tab" onclick="switchTab('networth')"><span class="tab-icon">💎</span>Net Worth</button>
-    <button class="tab" onclick="switchTab('investor')"><span class="tab-icon">💡</span>Investor</button>
-    <button class="tab" onclick="switchTab('analytics')"><span class="tab-icon">📊</span>Analytics</button>
-    <button class="tab" onclick="switchTab('notes')"><span class="tab-icon">📝</span>Notes</button>
+  <div id="tabsContainer">
+    <!-- Rendered dynamically by renderTabs() -->
+  </div>
+  <div id="tabsHint" style="text-align:center;font-size:11px;color:var(--muted);padding:0 16px 6px;display:none">
+    More tabs available in <button onclick="openSettings()" style="background:none;border:none;color:var(--accent);font-size:11px;font-family:var(--font);cursor:pointer;padding:0">Settings ⚙️</button>
   </div>
 
   <div class="content" id="content"></div>
@@ -772,6 +788,18 @@ async function applyUpdate() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
     Add expense
   </button>
+</div>
+
+<!-- Tab customise modal -->
+<div class="modal-overlay" id="tabCustomiseModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Customise tabs</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">Drag to reorder · tap toggle to show/hide. Expenses is always first.</div>
+    <div id="tabCustomiseList"></div>
+    <button class="btn-primary" onclick="saveTabConfig()">Save</button>
+    <button class="btn-ghost" onclick="closeModal('tabCustomiseModal')">Cancel</button>
+  </div>
 </div>
 
 <!-- Onboarding / Settings modal -->
@@ -800,13 +828,25 @@ async function applyUpdate() {
     </div>
     <button class="btn-primary" onclick="saveSettings()">Save settings</button>
     <button class="btn-ghost" onclick="closeModal('settingsModal')">Cancel</button>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--surface2)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">Tabs</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">Choose which tabs to show and drag to reorder them. Spendly has 12 tabs in total — only your selected ones appear in the tab bar.</div>
+      <button onclick="closeModal('settingsModal');openTabCustomise()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--text);font-family:var(--font);cursor:pointer;width:100%">⚙️ Manage tabs</button>
+    </div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--surface2)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">Backup & restore</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">Export a copy of all your data to your device. You can use it to restore Spendly on a new phone or browser.</div>
+      <button onclick="exportBackup()" style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--accent);font-family:var(--font);cursor:pointer;width:100%;margin-bottom:8px">⬇️ Export backup</button>
+      <button onclick="document.getElementById('importFileInput').click()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--text);font-family:var(--font);cursor:pointer;width:100%">⬆️ Restore from backup</button>
+      <input type="file" id="importFileInput" accept=".spendly,.json" style="display:none" onchange="importBackup(this)">
+    </div>
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--surface2);text-align:center">
       <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:10px">
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Spendly v<span id="appVersionDisplay"></span></div>
         <div style="font-size:11px;color:var(--muted)">Built <span id="appBuildTime"></span></div>
       </div>
       <button onclick="forceAppUpdate()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--muted);font-family:var(--font);cursor:pointer;width:100%;margin-bottom:8px">🔄 Check for update</button>
-      <button onclick="signOut()" style="background:none;border:1px solid var(--red-dim);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--red);font-family:var(--font);cursor:pointer;width:100%">Sign out</button>
+      <button id="signOutBtn" onclick="signOut()" style="background:none;border:1px solid var(--red-dim);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--red);font-family:var(--font);cursor:pointer;width:100%">Sign out</button>
     </div>
   </div>
 </div>
@@ -1010,15 +1050,19 @@ async function applyUpdate() {
 <div class="modal-overlay" id="mortgageRateModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Update interest rate</div>
-    <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.6">
+    <div class="modal-title" id="mortgageRateModalTitle">Update interest rate</div>
+    <div id="mortgageRateModalInfo" style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.6">
       Changing the rate only affects calculations <strong style="color:var(--text)">from today forward</strong>. All previous repayments and interest savings are preserved.
     </div>
-    <label>New annual interest rate (%)</label>
+    <label>Annual interest rate (%)</label>
     <input type="number" inputmode="decimal" id="mgNewRate" placeholder="e.g. 5.89" step="0.01" oninput="checkRateChanged()">
-    <label>Effective from (today or future only)</label>
-    <input type="date" id="mgRateFromDate" min="" oninput="checkRateChanged()">
+    <label id="mgRateDateLabel">Effective from (today or future only)</label>
+    <input type="date" id="mgRateFromDate" oninput="checkRateChanged()">
+    <label>Minimum weekly repayment ($) <span style="color:var(--muted);font-weight:400;font-size:11px">— optional</span></label>
+    <input type="number" inputmode="decimal" id="mgRateMinRepayment" placeholder="e.g. 650.00" step="0.01" min="0">
+    <div style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:14px;line-height:1.5">The bank's minimum required repayment at this rate. Useful for tracking how it changed over time.</div>
     <button class="btn-primary" id="mgRateSaveBtn" onclick="saveMortgageRate()" disabled style="opacity:0.4">Update rate</button>
+    <button class="btn-danger" id="mgRateDeleteBtn" onclick="deleteMortgageRateEntry()" style="display:none">Remove entry</button>
     <button class="btn-ghost" onclick="closeModal('mortgageRateModal')">Cancel</button>
   </div>
 </div>
@@ -1052,8 +1096,11 @@ async function applyUpdate() {
     <div class="modal-title">Mortgage details</div>
     <label>Original loan amount ($)</label>
     <input type="number" inputmode="decimal" id="mgLoanAmount" placeholder="e.g. 604000">
-    <label>Current balance ($) — from your bank app</label>
-    <input type="number" inputmode="decimal" id="mgCurrentBalance" placeholder="e.g. 581418.61" step="0.01">
+    <label>Known balance ($) — from your bank app</label>
+    <input type="number" inputmode="decimal" id="mgCurrentBalance" placeholder="e.g. 583168.61" step="0.01">
+    <label>Balance as of (date from bank app)</label>
+    <input type="date" id="mgBalanceAsOf">
+    <div style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:14px;line-height:1.5">Spendly will calculate your estimated current balance from this date using your repayments and interest charges.</div>
     <label>Annual interest rate (%)</label>
     <input type="number" inputmode="decimal" id="mgRate" placeholder="e.g. 5.35" step="0.01">
     <label>Loan start date</label>
@@ -1152,11 +1199,11 @@ async function applyUpdate() {
     <div class="modal-handle"></div>
     <div class="modal-title" id="recurringModalTitle">New recurring expense</div>
     <label>Description</label>
-    <input type="text" id="recName" placeholder="e.g. Netflix, Mortgage, Strata">
+    <input type="text" id="recName" placeholder="e.g. Netflix, Mortgage, Strata" oninput="checkRecChanged()">
     <label>Amount ($)</label>
-    <input type="number" inputmode="decimal" id="recAmount" placeholder="0.00" step="0.01" min="0">
+    <input type="number" inputmode="decimal" id="recAmount" placeholder="0.00" step="0.01" min="0" oninput="checkRecChanged()">
     <label>Category</label>
-    <select id="recCat" onchange="updateRecOffsetVisibility()"></select>
+    <select id="recCat" onchange="updateRecOffsetVisibility();checkRecChanged()"></select>
     <label>Frequency</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px" id="recFreqBtns">
       <button type="button" onclick="setRecFreq('weekly')" id="recFreqWeekly" style="padding:10px;border-radius:10px;border:2px solid var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:700;font-family:var(--font);cursor:pointer;font-size:13px">Weekly</button>
@@ -1181,26 +1228,26 @@ async function applyUpdate() {
     <!-- Every X weeks: pick number of weeks + start date -->
     <div id="recXweeksSection" style="display:none;margin-bottom:14px">
       <label>Repeat every how many weeks?</label>
-      <input type="number" inputmode="numeric" id="recXweeksNum" placeholder="e.g. 3" min="1" max="52" oninput="updateRecPreview()" style="margin-bottom:10px">
+      <input type="number" inputmode="numeric" id="recXweeksNum" placeholder="e.g. 3" min="1" max="52" oninput="updateRecPreview();checkRecChanged()" style="margin-bottom:10px">
       <label>Last done / start date</label>
-      <input type="date" id="recXweeksDate" oninput="updateRecPreview()">
+      <input type="date" id="recXweeksDate" oninput="updateRecPreview();checkRecChanged()">
       <div style="font-size:11px;color:var(--muted);margin-top:-8px">Next occurrence will be calculated from this date</div>
     </div>
     <!-- Monthly: pick day of month -->
     <div id="recMonthlySection" style="display:none;margin-bottom:14px">
       <label>Day of month</label>
-      <input type="number" inputmode="numeric" id="recMonthDay" placeholder="e.g. 28" min="1" max="31" oninput="updateRecPreview()">
+      <input type="number" inputmode="numeric" id="recMonthDay" placeholder="e.g. 28" min="1" max="31" oninput="updateRecPreview();checkRecChanged()">
     </div>
     <!-- Quarterly: pick start date -->
     <div id="recQuarterlySection" style="display:none;margin-bottom:14px">
       <label>Next due date</label>
-      <input type="date" id="recQuarterlyDate">
+      <input type="date" id="recQuarterlyDate" oninput="checkRecChanged()">
       <div style="font-size:11px;color:var(--muted);margin-top:-8px">Will repeat every 3 months from this date</div>
     </div>
     <!-- Yearly: pick date -->
     <div id="recYearlySection" style="display:none;margin-bottom:14px">
       <label>Next due date</label>
-      <input type="date" id="recYearlyDate" oninput="updateRecPreview()">
+      <input type="date" id="recYearlyDate" oninput="updateRecPreview();checkRecChanged()">
       <div style="font-size:11px;color:var(--muted);margin-top:-8px">Will repeat every year on this date</div>
     </div>
     <div id="recPreview" style="font-size:12px;color:var(--muted);margin-bottom:14px;min-height:16px;background:var(--surface2);border-radius:8px;padding:8px 10px;display:none"></div>
@@ -1219,7 +1266,7 @@ async function applyUpdate() {
     </div>
     <button class="btn-primary" id="recSaveBtn" onclick="saveRecurring()">Save</button>
     <button class="btn-danger" id="recDeleteBtn" onclick="deleteRecurring()" style="display:none">Delete</button>
-    <button class="btn-ghost" onclick="closeModal('recurringModal')">Cancel</button>
+    <button class="btn-ghost" onclick="cancelRecurring()">Cancel</button>
   </div>
 </div>
 
@@ -1442,9 +1489,12 @@ const PALETTE = [
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────
-const APP_VERSION = '1.4.1';
+const APP_VERSION = '1.5.1';
 const BUILD_DATE = '2026-03-21';
-const BUILD_TIME = '21 Mar 2026 12:29 PM AEDT';
+const BUILD_TIME = '21 Mar 2026 7:38 PM AEDT';
+const LAST_BACKUP_NUDGE_KEY = 'spendly_last_backup_nudge';
+const LAST_EXPORT_KEY = 'spendly_last_export';
+
 const STORAGE_KEY = 'spendly_generic_v1';
 const LOCK_KEY = 'spendly_pin_hash';
 const BIOM_KEY = 'spendly_biometric';
@@ -1710,31 +1760,34 @@ function saveState() {
   try { localStorage.setItem(BACKUP_KEY, data); } catch(e) {}
   try { sessionStorage.setItem(BACKUP_KEY2, data); } catch(e) {}
   try { localStorage.setItem(BACKUP_TS_KEY, new Date().toISOString()); } catch(e) {}
-  // Debounce cloud sync — wait 1.5s after last change
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => syncToSupabase(persistState), 1500);
+  // Cloud sync only in cloud mode
+  if (SPENDLY_MODE === 'cloud') {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => syncToSupabase(persistState), 1500);
+  }
 }
 
 async function loadState() {
-  // Try cloud first
-  const cloudData = await loadFromSupabase();
-  if (cloudData && typeof cloudData === 'object') {
-    const hasData = cloudData.budget > 0 ||
-      (cloudData.categories && cloudData.categories.length > 0) ||
-      (cloudData.expenses && cloudData.expenses.length > 0) ||
-      (cloudData.savingsCategories && cloudData.savingsCategories.length > 0);
-    if (hasData) {
-      state = { ...state, ...cloudData };
-      // If they have data they're clearly onboarded — mark it
-      if (!state.setupDone) { state.setupDone = true; }
-      localStorage.setItem(ONBOARDED_KEY, '1');
-      saveState();
-      setSyncStatus('saved');
-      setTimeout(() => setSyncStatus('idle'), 2000);
-      return;
+  // In cloud mode — try Supabase first
+  if (SPENDLY_MODE === 'cloud') {
+    const cloudData = await loadFromSupabase();
+    if (cloudData && typeof cloudData === 'object') {
+      const hasData = cloudData.budget > 0 ||
+        (cloudData.categories && cloudData.categories.length > 0) ||
+        (cloudData.expenses && cloudData.expenses.length > 0) ||
+        (cloudData.savingsCategories && cloudData.savingsCategories.length > 0);
+      if (hasData) {
+        state = { ...state, ...cloudData };
+        if (!state.setupDone) { state.setupDone = true; }
+        localStorage.setItem(ONBOARDED_KEY, '1');
+        saveState();
+        setSyncStatus('saved');
+        setTimeout(() => setSyncStatus('idle'), 2000);
+        return;
+      }
     }
   }
-  // Fall back to localStorage
+  // Local mode or cloud fallback — read from localStorage
   const sources = [
     () => localStorage.getItem(STORAGE_KEY),
     () => localStorage.getItem(BACKUP_KEY),
@@ -1747,7 +1800,7 @@ async function loadState() {
         const parsed = JSON.parse(saved);
         if (parsed && (parsed.budget > 0 || (parsed.categories && parsed.categories.length > 0) || (parsed.expenses && parsed.expenses.length > 0))) {
           state = { ...state, ...parsed };
-          saveState(); // push to cloud too
+          if (SPENDLY_MODE === 'cloud') saveState(); // push to cloud too
           return;
         }
       }
@@ -1756,7 +1809,7 @@ async function loadState() {
   for (const src of sources) {
     try {
       const saved = src();
-      if (saved) { state = { ...state, ...JSON.parse(saved) }; saveState(); return; }
+      if (saved) { state = { ...state, ...JSON.parse(saved) }; return; }
     } catch(e) {}
   }
 }
@@ -2037,12 +2090,212 @@ function updateHeader() {
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
+// ── Tab config ────────────────────────────────────────────────────────────────
+const ALL_TABS = [
+  { id:'expenses',  icon:'💸', label:'Expenses',  locked:true  },
+  { id:'goals',     icon:'🎯', label:'Budget'              },
+  { id:'savings',   icon:'💰', label:'Savings'             },
+  { id:'recycling', icon:'♻️', label:'Recycling'           },
+  { id:'mortgage',  icon:'🏠', label:'Mortgage'            },
+  { id:'tax',       icon:'🧾', label:'Tax'                 },
+  { id:'giftcards', icon:'🎁', label:'Wallet'              },
+  { id:'portfolio', icon:'📈', label:'Portfolio'           },
+  { id:'networth',  icon:'💎', label:'Net Worth'           },
+  { id:'investor',  icon:'💡', label:'Investor'            },
+  { id:'analytics', icon:'📊', label:'Analytics'           },
+  { id:'notes',     icon:'📝', label:'Notes'               },
+];
+
+const DEFAULT_TAB_IDS = ['expenses', 'goals', 'savings', 'analytics'];
+
+function getTabConfig() {
+  // Returns ordered array of { id, icon, label, enabled, locked }
+  // Merges saved state.tabConfig with ALL_TABS (handles new tabs added later)
+  const saved = state.tabConfig || [];
+
+  // Brand new user — no saved config yet: enable only default tabs
+  if (saved.length === 0) {
+    return ALL_TABS.map(t => ({
+      ...t,
+      enabled: DEFAULT_TAB_IDS.includes(t.id),
+    }));
+  }
+
+  const savedMap = {};
+  saved.forEach(t => { savedMap[t.id] = t; });
+
+  // Build ordered list: saved order first, then any new tabs not yet in saved
+  const result = [];
+  saved.forEach(t => {
+    const def = ALL_TABS.find(d => d.id === t.id);
+    if (def) result.push({ ...def, enabled: t.enabled !== false });
+  });
+  ALL_TABS.forEach(def => {
+    if (!savedMap[def.id]) result.push({ ...def, enabled: true });
+  });
+
+  // Expenses always first and always enabled
+  const expIdx = result.findIndex(t => t.id === 'expenses');
+  if (expIdx > 0) { const [exp] = result.splice(expIdx, 1); result.unshift(exp); }
+  if (result.length > 0) { result[0].enabled = true; result[0].locked = true; }
+
+  return result;
+}
+
+function renderTabs() {
+  const container = document.getElementById('tabsContainer');
+  if (!container) return;
+  const config = getTabConfig();
+  const enabled = config.filter(t => t.enabled);
+  const hasHidden = config.some(t => !t.enabled);
+
+  let html = '<div class="tabs">';
+  enabled.forEach(t => {
+    const isActive = state.currentTab === t.id;
+    html += '<button class="tab' + (isActive ? ' active' : '') + '" onclick="switchTab(\'' + t.id + '\')">' +
+      '<span class="tab-icon">' + t.icon + '</span>' + t.label +
+      '</button>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Show hint if some tabs are hidden
+  const hint = document.getElementById('tabsHint');
+  if (hint) hint.style.display = hasHidden ? '' : 'none';
+}
+
+// ── Tab customise modal ───────────────────────────────────────────────────────
+let _tabDraftConfig = []; // working copy while modal is open
+let _dragSrcIdx = null;
+
+function openTabCustomise() {
+  _tabDraftConfig = getTabConfig().map(t => ({ ...t }));
+  renderTabCustomiseList();
+  openModal('tabCustomiseModal');
+}
+
+function renderTabCustomiseList() {
+  const list = document.getElementById('tabCustomiseList');
+  if (!list) return;
+  list.innerHTML = _tabDraftConfig.map((t, i) =>
+    '<div class="tab-config-item" draggable="true" data-idx="' + i + '" ' +
+      'ondragstart="tabDragStart(event,' + i + ')" ' +
+      'ondragover="tabDragOver(event,' + i + ')" ' +
+      'ondragleave="tabDragLeave(event)" ' +
+      'ondrop="tabDrop(event,' + i + ')" ' +
+      'ondragend="tabDragEnd()" ' +
+      // Touch support
+      'ontouchstart="tabTouchStart(event,' + i + ')" ' +
+      'ontouchmove="tabTouchMove(event)" ' +
+      'ontouchend="tabTouchEnd(event,' + i + ')">' +
+      '<span class="tab-config-drag">☰</span>' +
+      '<span style="font-size:20px">' + t.icon + '</span>' +
+      '<span style="flex:1;font-size:14px;font-weight:500">' + t.label + '</span>' +
+      (t.locked
+        ? '<span class="tab-config-locked">Always on</span>'
+        : '<button class="tab-config-toggle ' + (t.enabled ? 'on' : 'off') + '" onclick="toggleTabDraft(' + i + ')"></button>'
+      ) +
+    '</div>'
+  ).join('');
+}
+
+function toggleTabDraft(idx) {
+  if (_tabDraftConfig[idx].locked) return;
+  _tabDraftConfig[idx].enabled = !_tabDraftConfig[idx].enabled;
+  renderTabCustomiseList();
+}
+
+// Drag and drop
+function tabDragStart(e, idx) {
+  _dragSrcIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => { const el = e.currentTarget; if (el) el.classList.add('dragging'); }, 0);
+}
+function tabDragOver(e, idx) {
+  e.preventDefault();
+  if (_dragSrcIdx === null || _dragSrcIdx === idx) return;
+  document.querySelectorAll('.tab-config-item').forEach(el => el.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+function tabDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function tabDrop(e, idx) {
+  e.preventDefault();
+  if (_dragSrcIdx === null || _dragSrcIdx === idx) return;
+  const src = _tabDraftConfig[_dragSrcIdx];
+  if (src.locked) return; // can't move locked tab
+  _tabDraftConfig.splice(_dragSrcIdx, 1);
+  _tabDraftConfig.splice(idx, 0, src);
+  // Ensure expenses stays first
+  const expIdx = _tabDraftConfig.findIndex(t => t.id === 'expenses');
+  if (expIdx > 0) { const [exp] = _tabDraftConfig.splice(expIdx,1); _tabDraftConfig.unshift(exp); }
+  _dragSrcIdx = null;
+  renderTabCustomiseList();
+}
+function tabDragEnd() {
+  _dragSrcIdx = null;
+  document.querySelectorAll('.tab-config-item').forEach(el => { el.classList.remove('dragging'); el.classList.remove('drag-over'); });
+}
+
+// Touch drag support
+let _touchDragIdx = null, _touchClone = null, _touchStartY = 0;
+function tabTouchStart(e, idx) {
+  _touchDragIdx = idx;
+  _touchStartY = e.touches[0].clientY;
+}
+function tabTouchMove(e) {
+  if (_touchDragIdx === null) return;
+  e.preventDefault();
+  const y = e.touches[0].clientY;
+  const list = document.getElementById('tabCustomiseList');
+  const items = list.querySelectorAll('.tab-config-item');
+  items.forEach(el => el.classList.remove('drag-over'));
+  // Find which item the touch is over
+  for (let i = 0; i < items.length; i++) {
+    const rect = items[i].getBoundingClientRect();
+    if (y >= rect.top && y <= rect.bottom) {
+      items[i].classList.add('drag-over'); break;
+    }
+  }
+}
+function tabTouchEnd(e, srcIdx) {
+  if (_touchDragIdx === null) return;
+  const y = e.changedTouches[0].clientY;
+  const list = document.getElementById('tabCustomiseList');
+  const items = list.querySelectorAll('.tab-config-item');
+  let targetIdx = srcIdx;
+  for (let i = 0; i < items.length; i++) {
+    const rect = items[i].getBoundingClientRect();
+    if (y >= rect.top && y <= rect.bottom) { targetIdx = i; break; }
+  }
+  if (targetIdx !== srcIdx && !_tabDraftConfig[srcIdx].locked) {
+    const src = _tabDraftConfig[srcIdx];
+    _tabDraftConfig.splice(srcIdx, 1);
+    _tabDraftConfig.splice(targetIdx, 0, src);
+    const expIdx = _tabDraftConfig.findIndex(t => t.id === 'expenses');
+    if (expIdx > 0) { const [exp] = _tabDraftConfig.splice(expIdx,1); _tabDraftConfig.unshift(exp); }
+  }
+  _touchDragIdx = null;
+  renderTabCustomiseList();
+}
+
+function saveTabConfig() {
+  // Ensure at least expenses enabled
+  const enabledCount = _tabDraftConfig.filter(t => t.enabled).length;
+  if (enabledCount === 0) { showToast('At least one tab must be enabled.', 2000); return; }
+  state.tabConfig = _tabDraftConfig.map(t => ({ id: t.id, enabled: t.enabled }));
+  // If current tab was disabled, switch to expenses
+  const currentEnabled = _tabDraftConfig.find(t => t.id === state.currentTab && t.enabled);
+  if (!currentEnabled) state.currentTab = 'expenses';
+  saveState();
+  closeModal('tabCustomiseModal');
+  renderTabs();
+  renderContent();
+}
+
 function switchTab(tab) {
   if (tab !== 'expenses') expenseSearchQuery = '';
   state.currentTab = tab;
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['expenses','goals','savings','recycling','mortgage','tax','giftcards','portfolio','networth','investor','analytics','notes'][i] === tab);
-  });
+  renderTabs(); // re-render tabs to update active state
   const fab = document.getElementById('fab');
   const isPast = (state.viewingCycleOffset || 0) < 0;
   if (tab === 'calendar' || tab === 'recycling' || tab === 'mortgage' || tab === 'tax' || tab === 'investor' || tab === 'networth' || tab === 'notes') {
@@ -2074,6 +2327,7 @@ function switchTab(tab) {
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderContent() {
   setTimeout(initModalSwipeDown, 100);
+  renderTabs();
   if      (state.currentTab === 'expenses')  renderExpenses();
   else if (state.currentTab === 'analytics') renderAnalytics();
   else if (state.currentTab === 'goals')     renderGoals();
@@ -4797,12 +5051,64 @@ function startConfetti() {
 // ── Mortgage tab ──────────────────────────────────────────────────────────────
 let editingMortgageExtraId = null;
 
+// Calculates estimated current balance from a known anchor point
+function getEstimatedBalance() {
+  const mg = state.mortgage || {};
+  const anchorBalance = mg.currentBalance || 0;
+  const anchorDate = mg.balanceAsOf || mg.startDate || '';
+  if (!anchorBalance || !anchorDate) return { balance: anchorBalance, anchorDate, isEstimated: false };
+
+  const anchor = new Date(anchorDate + 'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Find the mortgage category to identify repayment expenses
+  const mortgageCat = state.categories.find(c =>
+    c.name.toLowerCase().includes('mortgage') ||
+    c.name.toLowerCase().includes('home loan') ||
+    c.icon === '🏠'
+  );
+
+  // SUM repayments: mortgage recurring expenses logged AFTER anchor date
+  let totalRepayments = 0;
+  if (mortgageCat) {
+    (state.expenses || []).forEach(e => {
+      if (e.categoryId !== mortgageCat.id) return;
+      const d = new Date(e.date + 'T00:00:00');
+      if (d > anchor && d <= today) totalRepayments += e.amount;
+    });
+  }
+
+  // SUM extra repayments logged AFTER anchor date
+  let totalExtras = 0;
+  (state.mortgageExtras || []).forEach(e => {
+    const d = new Date(e.date + 'T00:00:00');
+    if (d > anchor && d <= today) totalExtras += e.amount;
+  });
+
+  // NOTE: Interest is NOT added here — it is already baked into whatever
+  // anchor balance you pulled from your bank app. Adding it again would
+  // double-count it. The interest log is for tracking purposes only.
+
+  const estimated = anchorBalance - totalRepayments - totalExtras;
+  const isEstimated = totalRepayments > 0 || totalExtras > 0;
+
+  return {
+    balance: Math.max(0, estimated),
+    anchorDate,
+    anchorBalance,
+    totalRepayments,
+    totalExtras,
+    isEstimated,
+  };
+}
+
 function mortgageCalc() {
   const mg = state.mortgage || {};
   if (!mg.loanAmount || !mg.interestRate || !mg.termYears) return null;
 
   const principal = mg.loanAmount;
-  const startBalance = mg.currentBalance > 0 ? mg.currentBalance : principal;
+  const est = getEstimatedBalance();
+  const startBalance = est.balance > 0 ? est.balance : (mg.currentBalance > 0 ? mg.currentBalance : principal);
   const annualRate = mg.interestRate / 100;
   const weeklyRate = annualRate / 52;
   const totalWeeks = mg.termYears * 52;
@@ -4889,6 +5195,7 @@ function openMortgageSettings() {
   const mg = state.mortgage || {};
   document.getElementById('mgLoanAmount').value = mg.loanAmount || '';
   document.getElementById('mgCurrentBalance').value = mg.currentBalance || '';
+  document.getElementById('mgBalanceAsOf').value = mg.balanceAsOf || '';
   document.getElementById('mgRate').value = mg.interestRate || '';
   document.getElementById('mgStartDate').value = mg.startDate || '';
   document.getElementById('mgTerm').value = mg.termYears || 30;
@@ -4902,6 +5209,7 @@ function saveMortgageSettings() {
   if (!state.mortgage) state.mortgage = {};
   state.mortgage.loanAmount      = parseFloat(document.getElementById('mgLoanAmount').value) || 0;
   state.mortgage.currentBalance  = parseFloat(document.getElementById('mgCurrentBalance').value) || 0;
+  state.mortgage.balanceAsOf     = document.getElementById('mgBalanceAsOf').value || '';
   state.mortgage.interestRate    = parseFloat(document.getElementById('mgRate').value) || 0;
   state.mortgage.startDate       = document.getElementById('mgStartDate').value || '';
   state.mortgage.termYears       = parseInt(document.getElementById('mgTerm').value) || 30;
@@ -4917,39 +5225,124 @@ function saveMortgageSettings() {
 }
 
 
+let editingRateFromDate = null; // null = new entry, string = editing existing
+
 function checkRateChanged() {
-  const currentRate = (state.mortgage && state.mortgage.interestRate) || 0;
   const newRate = parseFloat(document.getElementById('mgNewRate').value);
   const fromDate = document.getElementById('mgRateFromDate').value;
   const today = todayStr();
   const btn = document.getElementById('mgRateSaveBtn');
   if (!btn) return;
-  const isNew = !isNaN(newRate) && newRate > 0 && newRate !== currentRate;
-  const validDate = fromDate && fromDate >= today;
-  btn.disabled = !(isNew && validDate);
-  btn.style.opacity = (isNew && validDate) ? '1' : '0.4';
+  const hasRate = !isNaN(newRate) && newRate > 0;
+  const hasDate = !!fromDate;
+
+  let enabled = false;
+  if (editingRateFromDate !== null) {
+    // Edit mode — any valid rate + date
+    enabled = hasRate && hasDate;
+  } else if (document.getElementById('mgRateModalInfo') && document.getElementById('mortgageRateModalInfo').style.display !== 'none') {
+    // Current rate change — must be today or future, and different from current rate
+    const currentRate = (state.mortgage && state.mortgage.interestRate) || 0;
+    enabled = hasRate && hasDate && fromDate >= today && newRate !== currentRate;
+  } else {
+    // Historical add — any valid rate + past date
+    enabled = hasRate && hasDate;
+  }
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? '1' : '0.4';
 }
+
 function openMortgageRateModal() {
+  editingRateFromDate = null;
+  document.getElementById('mortgageRateModalTitle').textContent = 'Update interest rate';
+  document.getElementById('mortgageRateModalInfo').style.display = 'block';
+  document.getElementById('mgRateDateLabel').textContent = 'Effective from (today or future only)';
   document.getElementById('mgNewRate').value = (state.mortgage && state.mortgage.interestRate) || '';
   const today = todayStr();
   const dateField = document.getElementById('mgRateFromDate');
   dateField.value = today;
-  dateField.min = today; // prevent selecting past dates
+  dateField.min = today;
+  dateField.removeAttribute('max');
+  document.getElementById('mgRateMinRepayment').value = '';
+  document.getElementById('mgRateSaveBtn').textContent = 'Update rate';
   document.getElementById('mgRateSaveBtn').disabled = true;
   document.getElementById('mgRateSaveBtn').style.opacity = '0.4';
+  document.getElementById('mgRateDeleteBtn').style.display = 'none';
   openModal('mortgageRateModal');
   setTimeout(() => document.getElementById('mgNewRate').focus(), 350);
 }
+
+function openAddHistoricalRate() {
+  editingRateFromDate = null;
+  document.getElementById('mortgageRateModalTitle').textContent = 'Add historical rate';
+  document.getElementById('mortgageRateModalInfo').style.display = 'none';
+  document.getElementById('mgRateDateLabel').textContent = 'Effective from (past date)';
+  document.getElementById('mgNewRate').value = '';
+  const dateField = document.getElementById('mgRateFromDate');
+  dateField.value = '';
+  dateField.removeAttribute('min');
+  dateField.max = todayStr();
+  document.getElementById('mgRateMinRepayment').value = '';
+  document.getElementById('mgRateSaveBtn').textContent = 'Save entry';
+  document.getElementById('mgRateSaveBtn').disabled = true;
+  document.getElementById('mgRateSaveBtn').style.opacity = '0.4';
+  document.getElementById('mgRateDeleteBtn').style.display = 'none';
+  openModal('mortgageRateModal');
+  setTimeout(() => { document.getElementById('mgNewRate').focus(); checkRateChanged(); }, 350);
+}
+
+function openEditHistoricalRate(fromDate) {
+  const entry = (state.mortgage.rateHistory || []).find(r => r.fromDate === fromDate);
+  if (!entry) return;
+  editingRateFromDate = fromDate;
+  document.getElementById('mortgageRateModalTitle').textContent = 'Edit rate entry';
+  document.getElementById('mortgageRateModalInfo').style.display = 'none';
+  document.getElementById('mgRateDateLabel').textContent = 'Effective from';
+  document.getElementById('mgNewRate').value = entry.rate || '';
+  const dateField = document.getElementById('mgRateFromDate');
+  dateField.value = fromDate;
+  dateField.removeAttribute('min');
+  dateField.removeAttribute('max');
+  document.getElementById('mgRateMinRepayment').value = entry.minWeeklyRepayment || '';
+  document.getElementById('mgRateSaveBtn').textContent = 'Save changes';
+  document.getElementById('mgRateSaveBtn').disabled = false;
+  document.getElementById('mgRateSaveBtn').style.opacity = '1';
+  // Show delete for all entries except the current rate
+  const isCurrent = (state.mortgage.rateHistory || []).sort((a,b)=>b.fromDate.localeCompare(a.fromDate))[0]?.fromDate === fromDate;
+  document.getElementById('mgRateDeleteBtn').style.display = isCurrent ? 'none' : 'block';
+  openModal('mortgageRateModal');
+  setTimeout(() => { document.getElementById('mgNewRate').focus(); checkRateChanged(); }, 350);
+}
+
 function saveMortgageRate() {
   const newRate = parseFloat(document.getElementById('mgNewRate').value);
   const fromDate = document.getElementById('mgRateFromDate').value;
+  const minRepayment = parseFloat(document.getElementById('mgRateMinRepayment').value) || null;
   if (!newRate || newRate <= 0 || !fromDate) return;
   if (!state.mortgage.rateHistory) state.mortgage.rateHistory = [];
-  // Remove any future entries on same date and add new one
+  // If editing an existing entry, remove old one first
+  if (editingRateFromDate) {
+    state.mortgage.rateHistory = state.mortgage.rateHistory.filter(r => r.fromDate !== editingRateFromDate);
+  }
+  // Remove any entry with same date and add new one
   state.mortgage.rateHistory = state.mortgage.rateHistory.filter(r => r.fromDate !== fromDate);
-  state.mortgage.rateHistory.push({ rate: newRate, fromDate });
+  state.mortgage.rateHistory.push({ rate: newRate, fromDate, minWeeklyRepayment: minRepayment });
   state.mortgage.rateHistory.sort((a,b) => a.fromDate.localeCompare(b.fromDate));
-  state.mortgage.interestRate = newRate; // update current rate too
+  // Update current rate to the most recent entry
+  const latest = state.mortgage.rateHistory[state.mortgage.rateHistory.length - 1];
+  state.mortgage.interestRate = latest.rate;
+  saveState(); closeModal('mortgageRateModal'); renderContent();
+}
+
+function deleteMortgageRateEntry() {
+  if (!editingRateFromDate) return;
+  if (!confirm('Remove this rate entry?')) return;
+  state.mortgage.rateHistory = (state.mortgage.rateHistory || []).filter(r => r.fromDate !== editingRateFromDate);
+  // Update current rate to most recent remaining entry
+  if (state.mortgage.rateHistory.length > 0) {
+    state.mortgage.rateHistory.sort((a,b) => a.fromDate.localeCompare(b.fromDate));
+    state.mortgage.interestRate = state.mortgage.rateHistory[state.mortgage.rateHistory.length - 1].rate;
+  }
   saveState(); closeModal('mortgageRateModal'); renderContent();
 }
 
@@ -5151,7 +5544,8 @@ function deleteMortgageInterest() {
 function mortgageProjectionData(extraOffsetAmt) {
   const mg = state.mortgage || {};
   if (!mg.loanAmount || !mg.interestRate || !mg.termYears) return null;
-  const startBalance = mg.currentBalance > 0 ? mg.currentBalance : mg.loanAmount;
+  const est = getEstimatedBalance();
+  const startBalance = est.balance > 0 ? est.balance : (mg.currentBalance > 0 ? mg.currentBalance : mg.loanAmount);
   const annualRate = mg.interestRate / 100;
   const weeklyRate = annualRate / 52;
   if (weeklyRate <= 0) return null;
@@ -5264,7 +5658,11 @@ function renderMortgage() {
   const fmtF = (n) => '$' + n.toLocaleString('en-AU', {minimumFractionDigits:2,maximumFractionDigits:2});
   const timeLeft = (c.yearsLeft > 0 ? c.yearsLeft + 'y ' : '') + (c.monthsLeft > 0 ? c.monthsLeft + 'm' : '') || '< 1 month';
   const paidOffStr = c.paidOffDate ? c.paidOffDate.toLocaleDateString('en-AU',{month:'short',year:'numeric'}) : '—';
-  const pctPaid = (mg.loanAmount > 0 ? Math.min(((mg.loanAmount - c.remaining) / mg.loanAmount) * 100, 100) : 0).toFixed(1);
+
+  const est = getEstimatedBalance();
+  const displayBalance = est.balance > 0 ? est.balance : (mg.currentBalance || 0);
+  const pctPaid = (mg.loanAmount > 0 ? Math.min(((mg.loanAmount - displayBalance) / mg.loanAmount) * 100, 100) : 0).toFixed(1);
+  const anchorDateStr = est.anchorDate ? new Date(est.anchorDate+'T00:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '';
 
   let html = headerRow;
 
@@ -5272,23 +5670,36 @@ function renderMortgage() {
   html += '<div style="background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:8px">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">' +
       '<div>' +
-        '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Current balance</div>' +
-        '<div style="font-size:32px;font-weight:800;letter-spacing:-1px">' + fmtF(c.remaining) + '</div>' +
+        '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">' +
+          (est.isEstimated ? 'Estimated balance' : 'Current balance') +
+        '</div>' +
+        '<div style="font-size:32px;font-weight:800;letter-spacing:-1px">' + fmtF(displayBalance) + '</div>' +
         '<div style="font-size:12px;color:var(--muted);margin-top:2px">of ' + fmtD(mg.loanAmount) + ' original loan</div>' +
       '</div>' +
       '<div style="text-align:right">' +
         '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Paid off</div>' +
-        '<div style="font-size:20px;font-weight:700">' + fmtD(mg.loanAmount - c.remaining) + '</div>' +
+        '<div style="font-size:20px;font-weight:700">' + fmtD(mg.loanAmount - displayBalance) + '</div>' +
         '<div style="font-size:11px;color:var(--muted)">' + pctPaid + '%</div>' +
       '</div>' +
     '</div>' +
     '<div style="background:var(--surface2);border-radius:100px;height:8px;overflow:hidden;margin-bottom:6px">' +
       '<div style="width:' + pctPaid + '%;height:100%;background:var(--accent);border-radius:100px;transition:width 0.4s"></div>' +
     '</div>' +
-    '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">' +
+    '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:' + (est.isEstimated ? '12' : '0') + 'px">' +
       '<span>' + (mg.startDate ? 'Started ' + new Date(mg.startDate+'T00:00:00').toLocaleDateString('en-AU',{month:'short',year:'numeric'}) : '') + '</span>' +
       '<span>Free ' + paidOffStr + '</span>' +
     '</div>' +
+    (est.isEstimated ? (
+      '<div style="border-top:1px solid var(--surface2);padding-top:10px">' +
+        '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">How we calculated this</div>' +
+        '<div style="display:grid;grid-template-columns:1fr auto;gap:3px 12px;font-size:12px">' +
+          '<span style="color:var(--muted)">Balance on ' + anchorDateStr + '</span><span style="font-weight:600;text-align:right">' + fmtF(est.anchorBalance) + '</span>' +
+          (est.totalRepayments > 0 ? '<span style="color:var(--muted)">Repayments since</span><span style="font-weight:600;color:#34C759;text-align:right">-' + fmtF(est.totalRepayments) + '</span>' : '') +
+          (est.totalExtras > 0 ? '<span style="color:var(--muted)">Extra repayments</span><span style="font-weight:600;color:#34C759;text-align:right">-' + fmtF(est.totalExtras) + '</span>' : '') +
+        '</div>' +
+        '<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5">Interest is not added here — it\'s already in your bank balance. Update the anchor balance periodically in <button onclick="openMortgageSettings()" style="background:none;border:none;color:var(--accent);font-size:11px;font-family:var(--font);cursor:pointer;padding:0">Edit details</button> for best accuracy.</div>' +
+      '</div>'
+    ) : (anchorDateStr ? '<div style="font-size:11px;color:var(--muted)">Balance as of ' + anchorDateStr + ' — add repayments to track changes</div>' : '')) +
   '</div>';
 
   // ── Time + repayment cards ─────────────────────────────────────────────────
@@ -5431,23 +5842,37 @@ function renderMortgage() {
   // ── Interest rate card ────────────────────────────────────────────────────
   const rateHistory = (mg.rateHistory || []).slice().sort((a,b) => b.fromDate.localeCompare(a.fromDate));
   html += '<div style="background:var(--surface);border-radius:var(--r);padding:14px;margin-bottom:8px">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:' + (rateHistory.length > 1 ? '12' : '0') + 'px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
       '<div>' +
         '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Interest rate</div>' +
         '<div style="font-size:26px;font-weight:800;letter-spacing:-0.5px">' + (mg.interestRate || '—') + '%</div>' +
         '<div style="font-size:11px;color:var(--muted)">per annum</div>' +
       '</div>' +
-      '<button onclick="openMortgageRateModal()" style="background:var(--accent-dim);color:var(--accent);border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer">Change rate</button>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">' +
+        '<button onclick="openMortgageRateModal()" style="background:var(--accent-dim);color:var(--accent);border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer">Change rate</button>' +
+        '<button onclick="openAddHistoricalRate()" style="background:var(--surface2);color:var(--muted);border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer">+ Historical</button>' +
+      '</div>' +
     '</div>' +
-    (rateHistory.length > 1 ?
+    (rateHistory.length > 0 ?
       '<div style="border-top:1px solid var(--surface2);padding-top:10px">' +
         '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Rate history</div>' +
-        rateHistory.map((r, i) =>
-          '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">' +
-          '<span style="color:var(--muted)">' + new Date(r.fromDate+'T00:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) + '</span>' +
-          '<span style="font-weight:600' + (i===0?';color:var(--text)':'') + '">' + r.rate + '%' + (i===0?' (current)':'') + '</span>' +
-          '</div>'
-        ).join('') +
+        '<div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:4px 10px;align-items:center">' +
+          '<div style="font-size:10px;color:var(--muted);font-weight:600">DATE</div>' +
+          '<div></div>' +
+          '<div style="font-size:10px;color:var(--muted);font-weight:600;text-align:right">RATE</div>' +
+          '<div style="font-size:10px;color:var(--muted);font-weight:600;text-align:right">MIN/WK</div>' +
+          rateHistory.map((r, i) => {
+            const isCurrentRate = i === 0;
+            const minRep = r.minWeeklyRepayment ? '$' + parseFloat(r.minWeeklyRepayment).toLocaleString('en-AU', {minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+            return '<div style="font-size:12px;color:var(--muted)">' + new Date(r.fromDate+'T00:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) + '</div>' +
+              '<div>' + (isCurrentRate ? '<span style="font-size:10px;background:var(--accent-dim);color:var(--accent);border-radius:4px;padding:1px 6px;font-weight:700">current</span>' : '') + '</div>' +
+              '<div style="font-size:12px;font-weight:700;text-align:right;color:' + (isCurrentRate?'var(--text)':'var(--muted)') + '">' + r.rate + '%</div>' +
+              '<div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">' +
+                '<span style="font-size:12px;font-weight:600;color:' + (isCurrentRate?'var(--text)':'var(--muted)') + '">' + minRep + '</span>' +
+                '<button onclick="openEditHistoricalRate(\'' + r.fromDate + '\')" style="background:var(--surface2);border:none;border-radius:6px;padding:3px 8px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font)">Edit</button>' +
+              '</div>';
+          }).join('') +
+        '</div>' +
       '</div>'
       : '') +
   '</div>';
@@ -6000,6 +6425,7 @@ function toggleRecActive() {
   el.textContent = recActiveState ? '✓' : '';
   el.style.background = recActiveState ? 'var(--accent)' : 'var(--surface3)';
   el.style.border = '2px solid ' + (recActiveState ? 'var(--accent)' : 'var(--border)');
+  checkRecChanged();
 }
 
 function toggleRecOffset() {
@@ -6009,6 +6435,7 @@ function toggleRecOffset() {
   el.textContent = recOffsetState ? '✓' : '';
   el.style.background = recOffsetState ? 'var(--accent)' : 'var(--surface3)';
   el.style.border = '2px solid ' + (recOffsetState ? 'var(--accent)' : 'var(--border)');
+  checkRecChanged();
 }
 
 function updateRecOffsetVisibility() {
@@ -6048,6 +6475,7 @@ function setRecFreq(freq) {
   document.getElementById('recQuarterlySection').style.display = freq === 'quarterly' ? 'block' : 'none';
   document.getElementById('recYearlySection').style.display = freq === 'yearly' ? 'block' : 'none';
   updateRecPreview();
+  checkRecChanged();
 }
 
 function setRecWeekday(day) {
@@ -6058,6 +6486,7 @@ function setRecWeekday(day) {
     btn.classList.toggle('selected', d === day);
   });
   updateRecPreview();
+  checkRecChanged();
 }
 
 function updateRecPreview() {
@@ -6136,13 +6565,64 @@ function populateRecCatSelect() {
   }
 }
 
+let recOriginalSnapshot = null; // snapshot of record when editing opens
+
+function cancelRecurring() {
+  closeModal('recurringModal');
+  setTimeout(() => openRecurringList(), 50);
+}
+
+function getRecCurrentSnapshot() {
+  return {
+    name: document.getElementById('recName').value.trim(),
+    amount: parseFloat(document.getElementById('recAmount').value) || 0,
+    categoryId: document.getElementById('recCat').value,
+    frequency: recFreqState,
+    active: recActiveState,
+    autoOffset: recOffsetState,
+    weekday: recWeekdayState,
+    monthDay: parseInt(document.getElementById('recMonthDay').value) || null,
+    xweeksNum: parseInt(document.getElementById('recXweeksNum').value) || null,
+    xweeksDate: document.getElementById('recXweeksDate').value || null,
+    quarterlyDate: document.getElementById('recQuarterlyDate').value || null,
+    yearlyDate: document.getElementById('recYearlyDate').value || null,
+  };
+}
+
+function checkRecChanged() {
+  if (!editingRecurringId || !recOriginalSnapshot) return;
+  const curr = getRecCurrentSnapshot();
+  const orig = recOriginalSnapshot;
+  const changed = curr.name !== orig.name ||
+    curr.amount !== orig.amount ||
+    curr.categoryId !== orig.categoryId ||
+    curr.frequency !== orig.frequency ||
+    curr.active !== orig.active ||
+    curr.autoOffset !== orig.autoOffset ||
+    curr.weekday !== orig.weekday ||
+    curr.monthDay !== orig.monthDay ||
+    curr.xweeksNum !== orig.xweeksNum ||
+    curr.xweeksDate !== orig.xweeksDate ||
+    curr.quarterlyDate !== orig.quarterlyDate ||
+    curr.yearlyDate !== orig.yearlyDate;
+  const btn = document.getElementById('recSaveBtn');
+  if (btn) {
+    btn.disabled = !changed;
+    btn.style.opacity = changed ? '1' : '0.4';
+    btn.style.cursor = changed ? 'pointer' : 'default';
+  }
+}
+
 function openAddRecurring() {
   editingRecurringId = null; recActiveState = true; recOffsetState = false;
+  recOriginalSnapshot = null;
   document.getElementById('recurringModalTitle').textContent = 'New recurring expense';
   document.getElementById('recName').value = '';
   document.getElementById('recAmount').value = '';
   document.getElementById('recDeleteBtn').style.display = 'none';
-  document.getElementById('recSaveBtn').textContent = 'Save';
+  const saveBtn = document.getElementById('recSaveBtn');
+  saveBtn.textContent = 'Save';
+  saveBtn.disabled = false; saveBtn.style.opacity = '1'; saveBtn.style.cursor = 'pointer';
   const check = document.getElementById('recActiveCheck');
   check.textContent = '✓'; check.style.background = 'var(--accent)'; check.style.border = '2px solid var(--accent)';
   const ocheck = document.getElementById('recOffsetCheck');
@@ -6200,6 +6680,10 @@ function openEditRecurring(id) {
     document.getElementById('recYearlyDate').value = rec.nextDate || '';
   }
   updateRecPreview();
+  // Capture snapshot AFTER all fields are set, disable Update until change detected
+  recOriginalSnapshot = getRecCurrentSnapshot();
+  const saveBtn = document.getElementById('recSaveBtn');
+  saveBtn.disabled = true; saveBtn.style.opacity = '0.4'; saveBtn.style.cursor = 'default';
   closeModal('recurringListModal');
   openModal('recurringModal');
 }
@@ -6241,7 +6725,7 @@ function saveRecurring() {
   closeModal('recurringModal');
   updateHeader();
   renderContent();
-  openRecurringList();
+  setTimeout(() => openRecurringList(), 50);
 }
 
 function deleteRecurring() {
@@ -6251,7 +6735,7 @@ function deleteRecurring() {
   closeModal('recurringModal');
   updateHeader();
   renderContent();
-  openRecurringList();
+  setTimeout(() => openRecurringList(), 50);
 }
 
 function recFreqLabel(r) {
@@ -7603,8 +8087,7 @@ function saveSuperSettings() {
 
 function openPropertySettings() {
   const mg = state.mortgage || {};
-  const mortgageBalance = mg.currentBalance || 0;
-  document.getElementById('propertyModalTitle').textContent = 'Log property valuation';
+  const mortgageBalance = getEstimatedBalance().balance || mg.currentBalance || 0;
   document.getElementById('propertyValue').value = state.propertyValue || '';
   document.getElementById('propertyValDate').value = todayStr();
   document.getElementById('propertyValNote').value = '';
@@ -7653,8 +8136,7 @@ function renderNetWorth() {
   const fmt0s = n => (n<0?'-':'') + fmt0(n);
 
   // Components
-  const mortgageBalance = mg.currentBalance || 0;
-  const propertyValue = state.propertyValue || 0;
+  const mortgageBalance = getEstimatedBalance().balance || mg.currentBalance || 0;
   const propertyEquity = Math.max(propertyValue - mortgageBalance, 0);
   const offsetBalance = getOffsetBalance();
   const portfolioValue = (state.portfolio||[]).reduce((s,h)=>s+h.units*h.currentPrice,0);
@@ -8126,6 +8608,74 @@ function initVersionDisplay() {
 
 async function forceAppUpdate() { await applyUpdate(); }
 
+// ── Backup & Restore ──────────────────────────────────────────────────────────
+function exportBackup() {
+  try {
+    const { currentTab, viewingCycleOffset, mortgageCycleOffset, editingExpenseId, editingCatId, ...persistState } = state;
+    const backup = {
+      _spendly: true,
+      _version: APP_VERSION,
+      _exported: new Date().toISOString(),
+      _user: state.appName || 'Spendly user',
+      data: persistState,
+    };
+    const json = JSON.stringify(backup, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = 'spendly-backup-' + date + '.spendly';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    try { localStorage.setItem(LAST_EXPORT_KEY, Date.now().toString()); } catch(e) {}
+    dismissBackupNudge();
+    showToast('✅ Backup exported — save it somewhere safe!', 4000);
+  } catch(e) {
+    showToast('❌ Export failed. Please try again.', 3000);
+  }
+}
+
+function importBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  // Reset input so same file can be re-selected
+  input.value = '';
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      // Validate it's a Spendly backup
+      if (!parsed._spendly || !parsed.data) {
+        showToast('❌ Invalid backup file. Please select a valid Spendly backup.', 4000);
+        return;
+      }
+      // Confirm before overwriting
+      const exportedDate = parsed._exported ? new Date(parsed._exported).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' }) : 'unknown date';
+      const userName = parsed._user || 'unknown';
+      const confirmed = confirm(
+        'Restore backup from ' + exportedDate + '?\n\n' +
+        'This will REPLACE all your current data with the backup.\n\n' +
+        'Your current data will be overwritten. This cannot be undone.'
+      );
+      if (!confirmed) return;
+      // Apply backup data
+      state = { ...state, ...parsed.data };
+      saveState();
+      updateHeader();
+      renderContent();
+      closeModal('settingsModal');
+      showToast('✅ Backup restored from ' + exportedDate, 4000);
+    } catch(err) {
+      showToast('❌ Could not read backup file. It may be corrupted.', 4000);
+    }
+  };
+  reader.onerror = () => showToast('❌ Could not read file.', 3000);
+  reader.readAsText(file);
+}
+
 // ── Offset Daily Savings Log ──────────────────────────────────────────────────
 function recordTodayOffsetSaving() {
   const mg = state.mortgage || {};
@@ -8182,79 +8732,163 @@ function hideLaunchScreen(callback) {
 
 async function init() {
   state.currentTab = 'expenses';
-  // Safety net — if init crashes, hide launch screen after 6s
-  const safetyTimer = setTimeout(() => {
-    const ls = document.getElementById('launchScreen');
-    if (ls && ls.style.display !== 'none') {
-      ls.style.display = 'none';
-      showAuthScreen();
-    }
-  }, 6000);
-  try {
-    // Check for existing Supabase session
-    const { data: { session } } = await getSB().auth.getSession();
-    _sbSession = session;
+  applyModeUI(); // hide/show cloud-only UI elements
 
-    if (!_sbSession) {
-      // No session — show auth screen
-      hideLaunchScreen(() => { showAuthScreen(); });
-      clearTimeout(safetyTimer);
-      return;
-    }
-
-    // Session exists — load data and enter app
-    await loadState();
-    state.currentTab = 'expenses';
-    updateHeader();
-    renderContent();
-    initVersionDisplay();
-    hideLaunchScreen(() => {
-      if (!initWelcome()) {
-        showApp();
-        initLock();
-      }
-    });
-    // Force hide launch screen in case it's already gone (returning session)
-    const ls = document.getElementById('launchScreen');
-    if (ls) { ls.style.opacity = '0'; ls.style.display = 'none'; }
-    if (!initWelcome()) { showApp(); initLock(); }
-    applyRecurringExpenses();
-    recordTodayOffsetSaving();
-    setTimeout(checkCycleComplete, 2000);
-    setTimeout(checkExpiryAlerts, 1500);
-    setTimeout(initModalSwipeDown, 600);
-  } catch(e) {
-    console.error('Init error:', e);
-    hideLaunchScreen(() => { showAuthScreen(); });
-  } finally {
-    clearTimeout(safetyTimer);
-  }
-}
-// Wait for Supabase CDN script AND DOM to be ready before initialising
-// Polls up to 5 seconds for window.supabase to appear (CDN load)
-function waitForSupabaseThenInit() {
-  const start = Date.now();
-  function attempt() {
-    if (window.supabase && window.supabase.createClient) {
-      init();
-    } else if (Date.now() - start > 5000) {
-      // CDN failed to load — show auth screen with error
+  if (SPENDLY_MODE === 'cloud') {
+    // ── Cloud mode: check Supabase session first ───────────────────────────
+    const safetyTimer = setTimeout(() => {
       const ls = document.getElementById('launchScreen');
-      if (ls) { ls.style.opacity = '0'; setTimeout(() => { ls.style.display = 'none'; }, 500); }
-      showAuthScreen();
-      const err = document.getElementById('authError');
-      if (err) err.textContent = 'Could not connect. Please check your internet connection and reload.';
-    } else {
-      setTimeout(attempt, 50);
+      if (ls && ls.style.display !== 'none') {
+        ls.style.display = 'none';
+        showAuthScreen();
+      }
+    }, 6000);
+    try {
+      const { data: { session } } = await getSB().auth.getSession();
+      _sbSession = session;
+      if (!_sbSession) {
+        hideLaunchScreen(() => { showAuthScreen(); });
+        clearTimeout(safetyTimer);
+        return;
+      }
+      await loadState();
+      state.currentTab = 'expenses';
+      updateHeader();
+      renderContent();
+      initVersionDisplay();
+      hideLaunchScreen(() => { if (!initWelcome()) { showApp(); initLock(); } });
+      const ls = document.getElementById('launchScreen');
+      if (ls) { ls.style.opacity = '0'; ls.style.display = 'none'; }
+      if (!initWelcome()) { showApp(); initLock(); }
+      applyRecurringExpenses();
+      recordTodayOffsetSaving();
+      setTimeout(checkCycleComplete, 2000);
+      setTimeout(checkExpiryAlerts, 1500);
+      setTimeout(initModalSwipeDown, 600);
+    } catch(e) {
+      console.error('Init error:', e);
+      hideLaunchScreen(() => { showAuthScreen(); });
+    } finally {
+      clearTimeout(safetyTimer);
+    }
+  } else {
+    // ── Local mode: go straight in, no auth ───────────────────────────────
+    const safetyTimer = setTimeout(() => {
+      const ls = document.getElementById('launchScreen');
+      if (ls && ls.style.display !== 'none') {
+        ls.style.display = 'none';
+        showApp();
+      }
+    }, 4000);
+    try {
+      await loadState();
+      state.currentTab = 'expenses';
+      updateHeader();
+      renderContent();
+      initVersionDisplay();
+      hideLaunchScreen(() => { if (!initWelcome()) { showApp(); initLock(); } });
+      const ls = document.getElementById('launchScreen');
+      if (ls) { ls.style.opacity = '0'; ls.style.display = 'none'; }
+      if (!initWelcome()) { showApp(); initLock(); }
+      applyRecurringExpenses();
+      recordTodayOffsetSaving();
+      setTimeout(checkCycleComplete, 2000);
+      setTimeout(checkExpiryAlerts, 1500);
+      setTimeout(initModalSwipeDown, 600);
+      setTimeout(checkBackupNudge, 3000); // local mode only
+    } catch(e) {
+      console.error('Init error:', e);
+      hideLaunchScreen(() => { showApp(); });
+    } finally {
+      clearTimeout(safetyTimer);
     }
   }
-  attempt();
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', waitForSupabaseThenInit);
+// Apply mode-specific UI — hide cloud-only elements in local mode
+function applyModeUI() {
+  const isCloud = SPENDLY_MODE === 'cloud';
+  // Sync indicator
+  const syncEl = document.getElementById('syncIndicator');
+  if (syncEl) syncEl.style.display = isCloud ? '' : 'none';
+  // Sign out button
+  const signOutBtn = document.getElementById('signOutBtn');
+  if (signOutBtn) signOutBtn.style.display = isCloud ? '' : 'none';
+  // Auth screen (only relevant in cloud mode)
+  const authScreen = document.getElementById('authScreen');
+  if (authScreen && !isCloud) authScreen.style.display = 'none';
+}
+
+// ── Backup nudge (local mode only) ────────────────────────────────────────────
+function checkBackupNudge() {
+  if (SPENDLY_MODE !== 'local') return;
+  // Only nudge if they have meaningful data
+  const hasData = state.budget > 0 || (state.expenses && state.expenses.length > 0);
+  if (!hasData) return;
+  const lastNudge = localStorage.getItem(LAST_BACKUP_NUDGE_KEY);
+  const lastExport = localStorage.getItem(LAST_EXPORT_KEY);
+  const now = Date.now();
+  const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+  // Don't nudge if exported within 30 days
+  if (lastExport && (now - parseInt(lastExport)) < thirtyDays) return;
+  // Don't nudge more than once every 7 days
+  const sevenDays = 7 * 24 * 60 * 60 * 1000;
+  if (lastNudge && (now - parseInt(lastNudge)) < sevenDays) return;
+  localStorage.setItem(LAST_BACKUP_NUDGE_KEY, now.toString());
+  // Show nudge banner
+  const banner = document.createElement('div');
+  banner.id = 'backupNudge';
+  banner.style.cssText = 'position:fixed;bottom:90px;left:16px;right:16px;z-index:800;background:var(--surface);border:1.5px solid var(--accent);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);animation:slideUp 0.3s ease';
+  banner.innerHTML =
+    '<span style="font-size:22px">💾</span>' +
+    '<div style="flex:1;min-width:0">' +
+      '<div style="font-size:13px;font-weight:700;margin-bottom:2px">Back up your data</div>' +
+      '<div style="font-size:11px;color:var(--muted);line-height:1.4">Your data is stored on this device only. Export a backup to keep it safe.</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:6px;flex-shrink:0">' +
+      '<button onclick="exportBackup();dismissBackupNudge()" style="background:var(--accent);border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;font-family:var(--font);white-space:nowrap">Export now</button>' +
+      '<button onclick="dismissBackupNudge()" style="background:var(--surface2);border:none;border-radius:8px;padding:7px 10px;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--font)">Later</button>' +
+    '</div>';
+  document.body.appendChild(banner);
+}
+
+function dismissBackupNudge() {
+  const el = document.getElementById('backupNudge');
+  if (el) { el.style.opacity = '0'; el.style.transition = 'opacity 0.2s'; setTimeout(() => el.remove(), 200); }
+}
+
+// Boot sequence
+if (SPENDLY_MODE === 'cloud') {
+  // Wait for Supabase CDN to load before initialising
+  function waitForSupabaseThenInit() {
+    const start = Date.now();
+    function attempt() {
+      if (window.supabase && window.supabase.createClient) {
+        init();
+      } else if (Date.now() - start > 5000) {
+        const ls = document.getElementById('launchScreen');
+        if (ls) { ls.style.opacity = '0'; setTimeout(() => { ls.style.display = 'none'; }, 500); }
+        showAuthScreen();
+        const err = document.getElementById('authError');
+        if (err) err.textContent = 'Could not connect. Please check your internet connection and reload.';
+      } else {
+        setTimeout(attempt, 50);
+      }
+    }
+    attempt();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForSupabaseThenInit);
+  } else {
+    waitForSupabaseThenInit();
+  }
 } else {
-  waitForSupabaseThenInit();
+  // Local mode — no Supabase needed, init immediately
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 }
 
 // ── Data protection ───────────────────────────────────────────────────────────
