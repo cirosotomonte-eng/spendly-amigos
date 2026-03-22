@@ -9,6 +9,9 @@
 <meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f5f5f0" media="(prefers-color-scheme: light)">
 <title>Spendly — Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" id="pwaManifest">
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
@@ -16,7 +19,7 @@
 // ⚠️  'cloud' = Supabase auth + sync (your personal version)
 // ⚠️  'local' = localStorage only, no accounts (friends version)
 // ─────────────────────────────────────────────────────────────────────────────
-const SPENDLY_MODE = 'local';
+const SPENDLY_MODE = 'cloud';
 
 // Only load Supabase SDK in cloud mode
 if (SPENDLY_MODE === 'cloud') {
@@ -33,7 +36,7 @@ document.getElementById('pwaManifest').href = URL.createObjectURL(mblob);
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  const APP_VER = '1.5.3-202603211958';
+  const APP_VER = '1.7.3-202603221112';
   const swCode = `
 const CACHE = 'spendly-${APP_VER}';
 const VERSION = '${APP_VER}';
@@ -131,10 +134,15 @@ async function applyUpdate() {
     --border: #333; --text: #f0f0f0; --muted: #888; --accent: #4F8EF7;
     --accent-dim: rgba(79,142,247,0.12); --red: #ff5c5c; --red-dim: rgba(255,92,92,0.12);
     --orange: #f0a860; --r: 12px;
-    --font: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; overflow-x: hidden; overscroll-behavior-y: none; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; overflow-x: hidden; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; font-feature-settings: 'cv05' 1; }
+  /* Tabular figures for all currency/number displays */
+  .big-num, .num-label, .item-amount, .goal-num, .goals-subtotal span,
+  [class*="font-size:2"], [class*="font-size:3"], [class*="font-size:1"] {
+    font-variant-numeric: tabular-nums;
+  }
   #app { max-width: 900px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; visibility: hidden; }
 
   /* Header */
@@ -145,7 +153,7 @@ async function applyUpdate() {
   .icon-btn { background: none; border: none; cursor: pointer; padding: 4px; color: var(--muted); line-height: 1; display: flex; align-items: center; border-radius: 6px; }
   .icon-btn:active { background: var(--surface2); }
   .totals-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
-  .big-num { font-size: 38px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; }
+  .big-num { font-size: 38px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; font-variant-numeric: tabular-nums; }
   .num-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
   .sub-text { font-size: 13px; color: var(--muted); }
 
@@ -184,11 +192,11 @@ async function applyUpdate() {
   .section-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin: 16px 0 8px; }
   .list-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border-radius: var(--r); margin-bottom: 8px; cursor: pointer; transition: background 0.1s; }
   .list-item:active { background: var(--surface2); }
-  .cat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .cat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
   .item-info { flex: 1; min-width: 0; }
   .item-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .item-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .item-amount { font-size: 15px; font-weight: 600; }
+  .item-amount { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
   /* Empty */
   .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
@@ -215,7 +223,7 @@ async function applyUpdate() {
   .goal-row:last-of-type { border-bottom: none; }
   .goal-row:active { background: var(--surface2); }
   .goal-cat { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .goal-num { font-size: 13px; text-align: right; }
+  .goal-num { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
   .goals-subtotal { display: grid; grid-template-columns: 1fr 80px 80px 80px; padding: 8px 14px; background: var(--surface2); border-top: 1px solid var(--border); }
   .goals-subtotal span { font-size: 12px; font-weight: 600; }
   .goals-subtotal span:not(:first-child) { text-align: right; }
@@ -223,10 +231,13 @@ async function applyUpdate() {
   /* Modal */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
   .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 600px; margin: 0 auto; padding: 22px 20px 44px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); max-height: 90vh; overflow-y: auto; }
+  .modal { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 600px; margin: 0 auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
   .modal-overlay.open .modal { transform: translateY(0); }
-  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 100px; margin: 0 auto 18px; padding: 10px 40px; background-clip: content-box; cursor: grab; }
-  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 18px; }
+  .modal-handle-bar { padding: 14px 20px 0; flex-shrink: 0; cursor: grab; touch-action: none; background: var(--surface); border-radius: 24px 24px 0 0; }
+  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 100px; margin: 0 auto 14px; }
+  .modal-header { padding: 0 20px 4px; flex-shrink: 0; background: var(--surface); }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+  .modal-body { padding: 4px 20px 44px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
   label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; letter-spacing: 0.05em; text-transform: uppercase; }
   input, select, textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 16px; font-family: var(--font); padding: 11px 13px; outline: none; margin-bottom: 14px; -webkit-appearance: none; }
   input:focus, select:focus, textarea:focus { border-color: var(--accent); }
@@ -272,6 +283,18 @@ async function applyUpdate() {
   .tab-config-toggle.on::after { left:21px; }
   .tab-config-toggle.off::after { left:3px; }
   .tab-config-locked { font-size:11px; color:var(--muted); flex-shrink:0; }
+
+  /* Settings */
+  .settings-section-label { font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:20px 4px 8px; }
+  .settings-group { background:var(--surface);border-radius:16px;overflow:hidden;margin-bottom:4px; }
+  .settings-row { display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;transition:background 0.1s;-webkit-tap-highlight-color:transparent; }
+  .settings-row:not(:last-child) { border-bottom:1px solid var(--surface2); }
+  .settings-row:active { background:var(--surface2); }
+  .settings-row-icon { width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
+  .settings-row-label { flex:1;font-size:15px;font-weight:500;color:var(--text); }
+  .settings-row-sub { font-size:12px;color:var(--muted);flex-shrink:0;margin-right:4px; }
+  .settings-row-chevron { font-size:18px;color:var(--border);flex-shrink:0;line-height:1;font-weight:300; }
+  .settings-row-value { font-size:13px;color:var(--muted);flex-shrink:0;margin-right:2px; }
 
   /* Analytics */
   .chart-container { position: relative; width: 100%; height: 180px; margin-bottom: 16px; }
@@ -355,9 +378,10 @@ async function applyUpdate() {
   .lock-title { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
   .lock-sub { font-size: 14px; color: var(--muted); margin-bottom: 36px; text-align: center; line-height: 1.5; }
   .pin-dots { display: flex; gap: 14px; margin-bottom: 32px; }
-  .pin-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--surface3); transition: background 0.15s, transform 0.15s; }
-  .pin-dot.filled { background: var(--accent); transform: scale(1.15); }
-  .pin-dot.error { background: var(--red); }
+  .pin-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--surface3); transition: background 0.1s, transform 0.15s; }
+  .pin-dot.filled { background: var(--accent); transform: scale(1.3); animation: dotPop 0.2s ease; }
+  .pin-dot.error { background: var(--red); transform: scale(1.3); }
+  @keyframes dotPop { 0% { transform: scale(1); } 60% { transform: scale(1.5); } 100% { transform: scale(1.3); } }
   .numpad { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px; }
   .numpad-btn {
     width: 72px; height: 72px; border-radius: 50%;
@@ -365,12 +389,14 @@ async function applyUpdate() {
     font-size: 22px; font-weight: 600; font-family: var(--font);
     color: var(--text); cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background 0.1s, transform 0.08s;
+    transition: background 0.08s, transform 0.08s;
     -webkit-tap-highlight-color: transparent;
   }
-  .numpad-btn:active { background: var(--surface3); transform: scale(0.93); }
+  .numpad-btn:active { background: var(--surface3); transform: scale(0.91); }
+  .numpad-btn.pressed { background: var(--surface3) !important; transform: scale(0.91) !important; }
   .numpad-btn.action { font-size: 22px; color: var(--muted); background: none; }
   .numpad-btn.action:active { background: var(--surface2); }
+  .numpad-btn.action.pressed { background: var(--surface2) !important; }
   .lock-biometric-btn {
     margin-top: 20px; background: none; border: none;
     color: var(--accent); font-size: 14px; font-family: var(--font);
@@ -620,33 +646,52 @@ async function applyUpdate() {
   <div class="lock-icon" id="lockIcon">🔒</div>
   <div class="lock-title" id="lockTitle">Spendly</div>
   <div class="lock-sub" id="lockSub">Enter your PIN to continue</div>
-  <div class="pin-dots" id="pinDots">
-    <div class="pin-dot" id="dot0"></div>
-    <div class="pin-dot" id="dot1"></div>
-    <div class="pin-dot" id="dot2"></div>
-    <div class="pin-dot" id="dot3"></div>
-  </div>
-  <div class="lock-error-msg" id="lockError"></div>
-  <div class="numpad">
-    <button class="numpad-btn" onclick="lockTap('1')">1</button>
-    <button class="numpad-btn" onclick="lockTap('2')">2</button>
-    <button class="numpad-btn" onclick="lockTap('3')">3</button>
-    <button class="numpad-btn" onclick="lockTap('4')">4</button>
-    <button class="numpad-btn" onclick="lockTap('5')">5</button>
-    <button class="numpad-btn" onclick="lockTap('6')">6</button>
-    <button class="numpad-btn" onclick="lockTap('7')">7</button>
-    <button class="numpad-btn" onclick="lockTap('8')">8</button>
-    <button class="numpad-btn" onclick="lockTap('9')">9</button>
-    <button class="numpad-btn action" id="lockBiomSmall" onclick="triggerBiometric()" style="display:none">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M7 9c0-2.2 1.8-4 4-4s4 1.8 4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="4" y="11" width="14" height="8" rx="3" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="15" r="1.5" fill="currentColor"/></svg>
+  <!-- Face ID prompt (shown instead of PIN when biometric is available) -->
+  <div id="faceIdPrompt" style="display:none;flex-direction:column;align-items:center;gap:16px;margin:8px 0 24px">
+    <button id="faceIdBtn" onclick="triggerBiometric()" style="background:var(--accent-dim);border:1.5px solid var(--accent);border-radius:20px;padding:18px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:opacity 0.15s">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+        <path d="M6 14V10a4 4 0 0 1 4-4h4" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M38 14V10a4 4 0 0 0-4-4h-4" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M6 30v4a4 4 0 0 0 4 4h4" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M38 30v4a4 4 0 0 1-4 4h-4" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="16" cy="19" r="2" fill="var(--accent)"/>
+        <circle cx="28" cy="19" r="2" fill="var(--accent)"/>
+        <path d="M15 28c1.5 3 12.5 3 14 0" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M22 19v5" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span style="font-size:15px;font-weight:700;color:var(--accent);font-family:var(--font)">Use Face ID</span>
     </button>
-    <button class="numpad-btn" onclick="lockTap('0')">0</button>
-    <button class="numpad-btn action" onclick="lockBackspace()">⌫</button>
+    <button onclick="showPinFallback()" style="background:none;border:none;color:var(--muted);font-size:13px;font-family:var(--font);cursor:pointer;padding:4px 8px">Use PIN instead</button>
   </div>
-  <button class="lock-biometric-btn" id="lockBiomBtn" onclick="triggerBiometric()" style="display:none">
-    <svg width="18" height="18" viewBox="0 0 22 22" fill="none"><path d="M7 9c0-2.2 1.8-4 4-4s4 1.8 4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="4" y="11" width="14" height="8" rx="3" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="15" r="1.5" fill="currentColor"/></svg>
-    Use Face ID / Fingerprint
-  </button>
+  <div id="pinPad" style="display:flex;flex-direction:column;align-items:center">
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot" id="dot0"></div>
+      <div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div>
+      <div class="pin-dot" id="dot3"></div>
+    </div>
+    <div class="lock-error-msg" id="lockError"></div>
+    <div class="numpad">
+      <button class="numpad-btn" ontouchstart="lockTap('1',this)" onclick="lockTap('1',this)">1</button>
+      <button class="numpad-btn" ontouchstart="lockTap('2',this)" onclick="lockTap('2',this)">2</button>
+      <button class="numpad-btn" ontouchstart="lockTap('3',this)" onclick="lockTap('3',this)">3</button>
+      <button class="numpad-btn" ontouchstart="lockTap('4',this)" onclick="lockTap('4',this)">4</button>
+      <button class="numpad-btn" ontouchstart="lockTap('5',this)" onclick="lockTap('5',this)">5</button>
+      <button class="numpad-btn" ontouchstart="lockTap('6',this)" onclick="lockTap('6',this)">6</button>
+      <button class="numpad-btn" ontouchstart="lockTap('7',this)" onclick="lockTap('7',this)">7</button>
+      <button class="numpad-btn" ontouchstart="lockTap('8',this)" onclick="lockTap('8',this)">8</button>
+      <button class="numpad-btn" ontouchstart="lockTap('9',this)" onclick="lockTap('9',this)">9</button>
+      <button class="numpad-btn action" id="lockBiomSmall" onclick="triggerBiometric()" style="display:none">
+        <svg width="22" height="22" viewBox="0 0 44 44" fill="none"><path d="M6 14V10a4 4 0 0 1 4-4h4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M38 14V10a4 4 0 0 0-4-4h-4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M6 30v4a4 4 0 0 0 4 4h4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M38 30v4a4 4 0 0 1-4 4h-4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="19" r="2.5" fill="currentColor"/><circle cx="28" cy="19" r="2.5" fill="currentColor"/><path d="M15 28c1.5 3 12.5 3 14 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+      <button class="numpad-btn" ontouchstart="lockTap('0',this)" onclick="lockTap('0',this)">0</button>
+      <button class="numpad-btn action" ontouchstart="lockBackspace(this)" onclick="lockBackspace(this)">⌫</button>
+    </div>
+    <button class="lock-biometric-btn" id="lockBiomBtn" onclick="triggerBiometric()" style="display:none">
+      <svg width="18" height="18" viewBox="0 0 44 44" fill="none"><path d="M6 14V10a4 4 0 0 1 4-4h4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M38 14V10a4 4 0 0 0-4-4h-4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M6 30v4a4 4 0 0 0 4 4h4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M38 30v4a4 4 0 0 1-4 4h-4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="19" r="2.5" fill="currentColor"/><circle cx="28" cy="19" r="2.5" fill="currentColor"/><path d="M15 28c1.5 3 12.5 3 14 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      Use Face ID / Fingerprint
+    </button>
+  </div>
   <div class="lock-setup-hint" id="lockHint" style="display:none">Enter a 4-digit PIN to set one up.</div>
 </div>
 <div id="dataLossBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:998;background:#ff5c5c;color:#fff;padding:12px 16px;flex-direction:column;gap:6px;box-shadow:0 2px 12px rgba(0,0,0,0.3)">
@@ -806,48 +851,128 @@ async function applyUpdate() {
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="settingsTitle">Settings</div>
-    <label>App name (optional)</label>
-    <input type="text" id="setAppName" placeholder="e.g. My Budget">
-    <label>Monthly budget ($)</label>
-    <input type="number" inputmode="decimal" id="setBudget" placeholder="e.g. 3000">
-    <label>CC statement starts on day</label>
-    <input type="number" inputmode="numeric" id="setCycleDay" placeholder="e.g. 1" min="1" max="28">
-    <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.6">
-      Example: if your statement closes on the 17th, enter <strong style="color:var(--text)">18</strong> (the day the new cycle starts).
-    </div>
-    <label>City</label>
-    <input type="text" id="setCity" placeholder="e.g. Sydney">
-    <label>Country</label>
-    <input type="text" id="setCountry" placeholder="e.g. Australia">
-    <div id="setTimezoneDisplay" style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:14px"></div>
-    <div style="margin-top:4px;padding-top:16px;border-top:1px solid var(--surface2)">
-      <div style="font-size:13px;font-weight:700;margin-bottom:12px">Expense amount colours</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">Colours shown on expense amounts based on how much of the category budget has been spent.</div>
+    <div class="modal-title" id="settingsTitle" style="text-align:center">Settings</div>
+
+    <!-- Hidden form fields still needed by saveSettings() -->
+    <div style="display:none">
+      <input type="text" id="setAppName">
+      <input type="number" id="setBudget">
+      <input type="number" id="setCycleDay">
+      <input type="text" id="setCity">
+      <input type="text" id="setCountry">
+      <div id="setTimezoneDisplay"></div>
       <div id="spendColorRows"></div>
     </div>
-    <button class="btn-primary" onclick="saveSettings()">Save settings</button>
-    <button class="btn-ghost" onclick="closeModal('settingsModal')">Cancel</button>
-    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--surface2)">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px">Tabs</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">Choose which tabs to show and drag to reorder them. Spendly has 12 tabs in total — only your selected ones appear in the tab bar.</div>
-      <button onclick="closeModal('settingsModal');openTabCustomise()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--text);font-family:var(--font);cursor:pointer;width:100%">⚙️ Manage tabs</button>
+
+    <!-- ── App identity card ─────────────────────────────── -->
+    <div style="display:flex;flex-direction:column;align-items:center;padding:8px 0 24px">
+      <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#1a5cff,#34C759);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:10px;box-shadow:0 4px 20px rgba(79,142,247,0.3)">💚</div>
+      <div style="font-size:20px;font-weight:800;letter-spacing:-0.5px">Spendly</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">v<span id="appVersionDisplay"></span> · <span id="appBuildTime"></span></div>
     </div>
-    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--surface2)">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px">Backup & restore</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">Export a copy of all your data to your device. You can use it to restore Spendly on a new phone or browser.</div>
-      <button onclick="exportBackup()" style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--accent);font-family:var(--font);cursor:pointer;width:100%;margin-bottom:8px">⬇️ Export backup</button>
-      <button onclick="document.getElementById('importFileInput').click()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--text);font-family:var(--font);cursor:pointer;width:100%">⬆️ Restore from backup</button>
+
+    <!-- ── Preferences group ─────────────────────────────── -->
+    <div class="settings-section-label">Preferences</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="openSettingsSheet('budget')">
+        <span class="settings-row-icon" style="background:#4F8EF7">💰</span>
+        <span class="settings-row-label">Budget & cycle</span>
+        <span class="settings-row-chevron">›</span>
+      </div>
+      <div class="settings-row" onclick="openSettingsSheet('appearance')">
+        <span class="settings-row-icon" style="background:#FF9F0A">🎨</span>
+        <span class="settings-row-label">Amount colours</span>
+        <span class="settings-row-chevron">›</span>
+      </div>
+      <div class="settings-row" onclick="closeModal('settingsModal');openTabCustomise()">
+        <span class="settings-row-icon" style="background:#8E8E93">⚙️</span>
+        <span class="settings-row-label">Manage tabs</span>
+        <span class="settings-row-chevron">›</span>
+      </div>
+    </div>
+
+    <!-- ── Security group ────────────────────────────────── -->
+    <div class="settings-section-label">Security</div>
+    <div class="settings-group" id="faceIdSettingsSection">
+      <div class="settings-row" onclick="setupFaceId()">
+        <span class="settings-row-icon" style="background:#30D158">🔐</span>
+        <span class="settings-row-label" id="faceIdSettingsLabel">Enable Face ID</span>
+        <span class="settings-row-chevron" id="faceIdSettingsChevron">›</span>
+      </div>
+    </div>
+
+    <!-- ── Data group ─────────────────────────────────────── -->
+    <div class="settings-section-label">Data</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="exportBackup()">
+        <span class="settings-row-icon" style="background:#4F8EF7">⬇️</span>
+        <span class="settings-row-label">Export backup</span>
+        <span class="settings-row-chevron">›</span>
+      </div>
+      <div class="settings-row" onclick="document.getElementById('importFileInput').click()">
+        <span class="settings-row-icon" style="background:#FF9F0A">⬆️</span>
+        <span class="settings-row-label">Restore from backup</span>
+        <span class="settings-row-chevron">›</span>
+      </div>
       <input type="file" id="importFileInput" accept=".spendly,.json" style="display:none" onchange="importBackup(this)">
     </div>
-    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--surface2);text-align:center">
-      <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:10px">
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Spendly v<span id="appVersionDisplay"></span></div>
-        <div style="font-size:11px;color:var(--muted)">Built <span id="appBuildTime"></span></div>
+
+    <!-- ── About group ────────────────────────────────────── -->
+    <div class="settings-section-label">About</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="forceAppUpdate()">
+        <span class="settings-row-icon" style="background:#34C759">🔄</span>
+        <span class="settings-row-label">Check for update</span>
+        <span class="settings-row-sub" id="appVersionDisplay2"></span>
+        <span class="settings-row-chevron">›</span>
       </div>
-      <button onclick="forceAppUpdate()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--muted);font-family:var(--font);cursor:pointer;width:100%;margin-bottom:8px">🔄 Check for update</button>
-      <button id="signOutBtn" onclick="signOut()" style="background:none;border:1px solid var(--red-dim);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--red);font-family:var(--font);cursor:pointer;width:100%">Sign out</button>
     </div>
+
+    <!-- ── Sign out ───────────────────────────────────────── -->
+    <div id="signOutBtn" class="settings-group" style="margin-top:24px">
+      <div class="settings-row" onclick="signOut()">
+        <span class="settings-row-icon" style="background:#FF5C5C">🚪</span>
+        <span class="settings-row-label" style="color:var(--red)">Sign out</span>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- Settings sub-sheet: Budget & cycle -->
+<div class="modal-overlay" id="settingsBudgetModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Budget & cycle</div>
+    <label>App name (optional)</label>
+    <input type="text" id="setAppName2" placeholder="e.g. Ciro's Budget">
+    <label>Monthly budget ($)</label>
+    <input type="number" inputmode="decimal" id="setBudget2" placeholder="e.g. 8000">
+    <label>CC cycle starts on day</label>
+    <input type="number" inputmode="numeric" id="setCycleDay2" placeholder="e.g. 18" min="1" max="28">
+    <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.6">
+      Example: if your statement closes on the 17th, enter <strong style="color:var(--text)">18</strong>.
+    </div>
+    <label>City</label>
+    <input type="text" id="setCity2" placeholder="e.g. Sydney">
+    <label>Country</label>
+    <input type="text" id="setCountry2" placeholder="e.g. Australia">
+    <div id="setTimezoneDisplay2" style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:14px"></div>
+    <button class="btn-primary" onclick="saveBudgetSettings()">Save</button>
+    <button class="btn-ghost" onclick="closeModal('settingsBudgetModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- Settings sub-sheet: Appearance -->
+<div class="modal-overlay" id="settingsAppearanceModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Amount colours</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">Colours shown on expense amounts based on how much of the category budget has been spent.</div>
+    <div id="spendColorRows2"></div>
+    <button class="btn-primary" onclick="saveAppearanceSettings()">Save</button>
+    <button class="btn-ghost" onclick="closeModal('settingsAppearanceModal')">Cancel</button>
   </div>
 </div>
 
@@ -1186,7 +1311,11 @@ async function applyUpdate() {
     <div class="modal-handle"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div class="modal-title" style="margin-bottom:0">Recurring expenses</div>
-      <button onclick="openAddRecurring()" style="background:var(--accent-dim);color:var(--accent);border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer">+ Add</button>
+      <div style="display:flex;gap:6px">
+        <button onclick="repairMissingRecurringExpenses();showToast('✅ Checked for missed recurring expenses',2500)" style="background:var(--surface2);color:var(--muted);border:none;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer" title="Apply any missed transactions for today">↻ Apply today</button>
+        <button onclick="openAddRecurring()" style="background:var(--accent-dim);color:var(--accent);border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer">+ Add</button>
+        <button onclick="showRecurringDiagnostic()" style="background:var(--surface2);color:var(--muted);border:none;border-radius:8px;padding:7px 10px;font-size:11px;font-family:var(--font);cursor:pointer" title="Diagnostic">🔍</button>
+      </div>
     </div>
     <div id="recurringListContent"></div>
     <button class="btn-ghost" onclick="closeModal('recurringListModal')">Close</button>
@@ -1434,7 +1563,8 @@ async function applyUpdate() {
     <label>Source / note <span style="font-size:10px;color:var(--muted)">(optional)</span></label>
     <input type="text" id="propertyValNote" placeholder="e.g. Bank valuation, Domain estimate, Agent appraisal">
     <div id="propertyEquityPreview" style="background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--muted);min-height:36px"></div>
-    <button class="btn-primary" onclick="savePropertyValue()">Save valuation</button>
+    <button class="btn-primary" id="propertyValSaveBtn" onclick="savePropertyValue()">Save valuation</button>
+    <button class="btn-danger" id="propertyValDeleteBtn" onclick="deletePropertyValuation()" style="display:none">Delete valuation</button>
     <button class="btn-ghost" onclick="closeModal('propertyModal')">Cancel</button>
   </div>
 </div>
@@ -1489,9 +1619,9 @@ const PALETTE = [
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────
-const APP_VERSION = '1.5.3';
-const BUILD_DATE = '2026-03-21';
-const BUILD_TIME = '21 Mar 2026 7:58 PM AEDT';
+const APP_VERSION = '1.7.3';
+const BUILD_DATE = '2026-03-22';
+const BUILD_TIME = '22 Mar 2026 11:12 AM AEDT';
 const LAST_BACKUP_NUDGE_KEY = 'spendly_last_backup_nudge';
 const LAST_EXPORT_KEY = 'spendly_last_export';
 
@@ -1603,15 +1733,41 @@ function showAuthScreen() {
   document.getElementById('authScreen').classList.remove('hidden');
   document.getElementById('app').style.visibility = 'hidden';
   switchAuthTab('login');
+  startAutofillPoller();
 }
 
 function hideAuthScreen() {
   document.getElementById('authScreen').classList.add('hidden');
+  stopAutofillPoller();
   showApp();
+}
+
+// ── Autofill detection ────────────────────────────────────────────────────────
+// iOS autofill doesn't fire input/change events reliably — poll for both fields
+// being filled and auto-submit in login mode only
+let _autofillPoller = null;
+function startAutofillPoller() {
+  stopAutofillPoller();
+  _autofillPoller = setInterval(() => {
+    if (authMode !== 'login') return;
+    const email = document.getElementById('authEmail');
+    const pass = document.getElementById('authPassword');
+    const btn = document.getElementById('authSubmitBtn');
+    if (email && pass && email.value.trim() && pass.value && !btn.disabled) {
+      stopAutofillPoller();
+      // Small delay so autofill fully completes before submitting
+      setTimeout(() => handleAuthSubmit(), 400);
+    }
+  }, 300);
+}
+function stopAutofillPoller() {
+  if (_autofillPoller) { clearInterval(_autofillPoller); _autofillPoller = null; }
 }
 
 function switchAuthTab(mode) {
   authMode = mode;
+  if (mode === 'signup') stopAutofillPoller();
+  else startAutofillPoller();
   document.getElementById('authTabLogin').classList.toggle('active', mode === 'login');
   document.getElementById('authTabSignup').classList.toggle('active', mode === 'signup');
   document.getElementById('authPasswordConfirm').style.display = mode === 'signup' ? '' : 'none';
@@ -1671,7 +1827,7 @@ async function handleAuthSubmit() {
     renderContent();
     initVersionDisplay();
     if (!initWelcome()) { showApp(); initLock(); }
-    applyRecurringExpenses();
+    repairMissingRecurringExpenses(); applyRecurringExpenses();
     recordTodayOffsetSaving();
     setTimeout(checkCycleComplete, 2000);
     setTimeout(checkExpiryAlerts, 1500);
@@ -1939,25 +2095,32 @@ function cycleExpenses() {
   });
 }
 
-// Returns recurring expenses due AFTER today but before cycle end (upcoming/committed)
+// Returns recurring expenses due TODAY (not yet logged) or AFTER today — within cycle
 function getUpcomingRecurring() {
   if (!isCurrentCycle()) return [];
   const { cycleStart, cycleEnd } = getCycleRange(0);
   const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr_ = todayStr();
   const recs = (state.recurringExpenses || []).filter(r => r.active !== false);
   const upcoming = [];
   recs.forEach(r => {
-    // Get all occurrences within the cycle that are strictly after today
     let d = getRecNextDate(r);
     if (!d) return;
     d.setHours(0,0,0,0);
-    // Walk forward through all occurrences within this cycle that are future
     const visited = new Set();
     while (d <= cycleEnd) {
       const key = dateToStr(d);
       if (visited.has(key)) break;
       visited.add(key);
-      if (d > today && d >= cycleStart) {
+      // Include today ONLY if the expense hasn't been logged yet
+      const isDueToday = key === todayStr_;
+      const alreadyLoggedToday = isDueToday && (state.expenses || []).some(e =>
+        e.categoryId === r.categoryId &&
+        e.date === todayStr_ &&
+        e.amount === r.amount &&
+        e.name === r.name
+      );
+      if (d >= cycleStart && (d > today || (isDueToday && !alreadyLoggedToday))) {
         upcoming.push({
           id: r.id + '_' + key,
           recurringId: r.id,
@@ -2525,28 +2688,35 @@ function renderExpenseResults(resultsEl) {
   if (!resultsEl) return;
   const query = expenseSearchQuery.trim().toLowerCase();
   const allExpenses = cycleExpenses().sort((a,b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
-  const upcoming = isCurrentCycle() ? getUpcomingRecurring().sort((a,b) => a.date.localeCompare(b.date)) : [];
+  const allUpcoming = isCurrentCycle() ? getUpcomingRecurring().sort((a,b) => a.date.localeCompare(b.date)) : [];
 
   const expenses = query ? allExpenses.filter(e => {
     const cat = catById(e.categoryId);
     return (cat ? cat.name.toLowerCase() : '').includes(query) || (e.name||'').toLowerCase().includes(query);
   }) : allExpenses;
 
-  // (searchBar is rendered by renderExpenses — not duplicated here)
+  // Filter upcoming when searching
+  const upcomingFiltered = query ? allUpcoming.filter(e => {
+    const cat = catById(e.categoryId);
+    return (cat ? cat.name.toLowerCase() : '').includes(query) || (e.name||'').toLowerCase().includes(query);
+  }) : allUpcoming;
 
   // ── Upcoming recurring section ─────────────────────────────────────────────
   let upcomingHTML = '';
-  if (upcoming.length > 0 && !query) {
-    const upTotal = upcoming.reduce((s,e) => s + e.amount, 0);
+  const showUpcoming = query ? upcomingFiltered.length > 0 : allUpcoming.length > 0;
+  const upcomingToShow = query ? upcomingFiltered : allUpcoming;
+
+  if (showUpcoming) {
+    const upTotal = upcomingToShow.reduce((s,e) => s + e.amount, 0);
     upcomingHTML = '<div style="background:rgba(79,142,247,0.06);border:1.5px solid rgba(79,142,247,0.2);border-radius:var(--r);margin-bottom:16px;overflow:hidden">';
     upcomingHTML += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px 8px">' +
       '<div style="display:flex;align-items:center;gap:6px">' +
         '<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="var(--accent)" stroke-width="1.3"/><path d="M7 4v3l2 1.5" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"/></svg>' +
-        '<span style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em">Coming up this cycle</span>' +
+        '<span style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em">' + (query ? 'Upcoming matches' : 'Coming up this cycle') + '</span>' +
       '</div>' +
       '<span style="font-size:12px;font-weight:700;color:var(--accent)">-' + fmt(upTotal) + ' committed</span>' +
     '</div>';
-    upcoming.forEach((e, i) => {
+    upcomingToShow.forEach((e, i) => {
       const cat = catById(e.categoryId) || { name:'Unknown', icon:'\u2753', color:'#888' };
       const dueDate = new Date(e.date + 'T00:00:00');
       const today = new Date(); today.setHours(0,0,0,0);
@@ -2554,7 +2724,7 @@ function renderExpenseResults(resultsEl) {
       const dueStr = daysUntilDue === 1 ? 'Tomorrow' : daysUntilDue === 0 ? 'Today' :
         dueDate.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
       upcomingHTML += '<div style="display:flex;align-items:center;gap:12px;padding:9px 14px;' + (i > 0 ? 'border-top:1px solid rgba(79,142,247,0.1)' : '') + '">' +
-        '<div style="width:36px;height:36px;border-radius:10px;background:' + cat.color + '22;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">' + cat.icon + '</div>' +
+        '<div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">' + cat.icon + '</div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-size:13px;font-weight:500">' + e.name + '</div>' +
           '<div style="font-size:11px;color:var(--muted)">' + cat.name + ' \u00b7 ' + dueStr + '</div>' +
@@ -2575,9 +2745,23 @@ function renderExpenseResults(resultsEl) {
   const groups = {};
   expenses.forEach(e => { if (!groups[e.date]) groups[e.date] = []; groups[e.date].push(e); });
 
-  let html = upcomingHTML + buildSpendLegend();
+  let html = upcomingHTML + (query ? '' : buildSpendLegend());
+
   if (query) {
-    html += '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">' + expenses.length + ' result' + (expenses.length !== 1 ? 's' : '') + ' for \"<strong style=\"color:var(--text)\">' + query + '</strong>\"</div>';
+    const loggedTotal = expenses.reduce((s,e) => s + e.amount, 0);
+    const upcomingMatchTotal = upcomingFiltered.reduce((s,e) => s + e.amount, 0);
+    const grandTotal = loggedTotal + upcomingMatchTotal;
+    const totalCount = expenses.length + upcomingFiltered.length;
+    html += '<div style="background:var(--surface);border-radius:var(--r);padding:11px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">' +
+      '<div>' +
+        '<div style="font-size:12px;color:var(--muted)">' + totalCount + ' result' + (totalCount !== 1 ? 's' : '') + ' for <strong style="color:var(--text)">"' + query + '"</strong></div>' +
+        (upcomingMatchTotal > 0 ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + expenses.length + ' logged · ' + upcomingFiltered.length + ' upcoming</div>' : '') +
+      '</div>' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:16px;font-weight:700">' + fmt(grandTotal) + '</div>' +
+        '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">total</div>' +
+      '</div>' +
+    '</div>';
   }
 
   Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(date => {
@@ -2595,7 +2779,7 @@ function renderExpenseResults(resultsEl) {
         '<svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M5 7h12M9 7V5h4v2M10 11v4M12 11v4M6 7l1 11h8l1-11" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
         '</div>' +
         '<div class="list-item" onclick="openEditExpense(\'' + e.id + '\')">' +
-        '<div class="cat-icon" style="background:' + cat.color + '22">' + cat.icon + '</div>' +
+        '<div class="cat-icon">' + cat.icon + '</div>' +
         '<div class="item-info"><div class="item-name">' + cat.name + '</div>' + (e.name ? '<div class="item-meta">' + e.name + '</div>' : '') + '</div>' +
         '<div class="item-amount" style="color:' + getSpendColor(e.categoryId) + '">' + fmt(e.amount) + '</div></div></div>';
     });
@@ -3290,6 +3474,19 @@ function renderAnalyticsForecast() {
 }
 
 
+function toggleBudgetWarnTip(id) {
+  // Close any other open budget warn tips first
+  document.querySelectorAll('[id^="tip-budget-warn-"]').forEach(el => {
+    if (el.id !== id) el.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+// Close budget warn tips when tapping elsewhere
+document.addEventListener('click', () => {
+  document.querySelectorAll('[id^="tip-budget-warn-"]').forEach(el => { el.style.display = 'none'; });
+});
+
 function renderGoals() {
   const el = document.getElementById('content');
   const expenses = cycleExpenses();
@@ -3324,9 +3521,29 @@ function renderGoals() {
     const gSpent  = cats.reduce((s,c)=>s+(bycat[c.id]||0),0);
     const gLeft   = gBudget - gSpent;
 
+    // Sum of category lefts that are positive (what the table implies you can still spend)
+    const sumCatLefts = cats.reduce((s,c) => {
+      const left = (c.budgetLimit||0) - (bycat[c.id]||0);
+      return s + (left > 0 ? left : 0);
+    }, 0);
+    // Warning: the total pot left is less than what these categories suggest you can spend
+    const showWarning = totalLeft >= 0 && sumCatLefts > totalLeft + 0.01;
+    const tipId = 'tip-budget-warn-' + type;
+    const warningHtml = showWarning
+      ? ' <span style="position:relative;display:inline-flex;align-items:center">' +
+          '<span onclick="event.stopPropagation();toggleBudgetWarnTip(\'' + tipId + '\')" style="cursor:pointer;font-size:13px;line-height:1">⚠️</span>' +
+        '</span>'
+      : '';
+    const tooltipHtml = showWarning
+      ? '<div id="' + tipId + '" style="display:none;background:var(--surface);border:1px solid var(--orange);border-radius:10px;padding:12px 14px;margin:6px 0 10px;font-size:12px;color:var(--muted);line-height:1.6">' +
+          'Your total budget only has <strong style="color:var(--text)">' + fmt(totalLeft) + '</strong> left, but these categories show <strong style="color:var(--text)">' + fmt(sumCatLefts) + '</strong> available to spend. Using all that headroom would put you <strong style="color:var(--red)">' + fmt(sumCatLefts - totalLeft) + ' over budget</strong>.' +
+        '</div>'
+      : '';
+
     html += '<div class="section-label">' + (type==='fixed'?'Fixed':'Variable') + '</div>';
     html += '<div class="goals-table">';
-    html += '<div class="goals-table-header"><span>Category</span><span>Budget</span><span>Spent</span><span>Left</span></div>';
+    html += '<div class="goals-table-header"><span>Category</span><span>Budget</span><span>Spent' + warningHtml + '</span><span>Left</span></div>';
+    html += tooltipHtml;
     cats.forEach(cat => {
       const spent = bycat[cat.id] || 0;
       const budget = cat.budgetLimit || 0;
@@ -3476,18 +3693,119 @@ function renderCalendar() {
 
 // ── Settings modal ────────────────────────────────────────────────────────────
 function openSettings() {
-  document.getElementById('settingsTitle').textContent = isSetupComplete() ? 'Settings' : 'Welcome! Let\'s set up';
+  document.getElementById('settingsTitle').textContent = isSetupComplete() ? 'Settings' : 'Set up Spendly';
+  // Populate hidden fields (still used by legacy saveSettings path during onboarding)
   document.getElementById('setAppName').value = state.appName || '';
   document.getElementById('setBudget').value = state.budget || '';
   document.getElementById('setCycleDay').value = state.cycleDay || '';
   document.getElementById('setCity').value = state.city || '';
   document.getElementById('setCountry').value = state.country || 'Australia';
-  const tz = state.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const tzEl = document.getElementById('setTimezoneDisplay');
-  if (tzEl) tzEl.textContent = '🌏 Detected timezone: ' + tz;
   initVersionDisplay();
-  buildSpendColorRows();
+  // Update version display in new location
+  const v2 = document.getElementById('appVersionDisplay2');
+  if (v2) v2.textContent = APP_VERSION;
+  // Face ID section
+  const faceIdSection = document.getElementById('faceIdSettingsSection');
+  const hasPin = !!localStorage.getItem(LOCK_KEY);
+  if (faceIdSection) faceIdSection.style.display = (isBiometricSupported() && hasPin) ? '' : 'none';
+  renderSettingsFaceIdBtn();
+  // applyModeUI handles signOut/syncIndicator visibility
+  applyModeUI();
   openModal('settingsModal');
+}
+
+function openSettingsSheet(sheet) {
+  if (sheet === 'budget') {
+    document.getElementById('setAppName2').value = state.appName || '';
+    document.getElementById('setBudget2').value = state.budget || '';
+    document.getElementById('setCycleDay2').value = state.cycleDay || '';
+    document.getElementById('setCity2').value = state.city || '';
+    document.getElementById('setCountry2').value = state.country || 'Australia';
+    const tz = state.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzEl = document.getElementById('setTimezoneDisplay2');
+    if (tzEl) tzEl.textContent = '🌏 Detected timezone: ' + tz;
+    openModal('settingsBudgetModal');
+  } else if (sheet === 'appearance') {
+    buildSpendColorRowsIn('spendColorRows2');
+    openModal('settingsAppearanceModal');
+  }
+}
+
+function saveBudgetSettings() {
+  const name = document.getElementById('setAppName2').value.trim();
+  const budget = parseFloat(document.getElementById('setBudget2').value) || 0;
+  const cycleDay = parseInt(document.getElementById('setCycleDay2').value) || 1;
+  const city = document.getElementById('setCity2').value.trim();
+  const country = document.getElementById('setCountry2').value.trim();
+  if (budget <= 0) { showToast('Please enter a budget amount', 2500); return; }
+  state.appName = name;
+  state.budget = budget;
+  state.cycleDay = Math.min(Math.max(cycleDay, 1), 28);
+  state.city = city;
+  state.country = country;
+  state.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  state.setupDone = true;
+  saveState();
+  closeModal('settingsBudgetModal');
+  updateHeader();
+  renderContent();
+  showToast('✅ Settings saved', 2000);
+}
+
+function saveAppearanceSettings() {
+  saveSpendColorsFrom('spendColorRows2');
+  saveState();
+  closeModal('settingsAppearanceModal');
+  renderContent();
+  showToast('✅ Colours saved', 2000);
+}
+
+function buildSpendColorRowsIn(containerId) {
+  const sc = state.spendingColors || {};
+  const rows = document.getElementById(containerId);
+  if (!rows) return;
+  const tiers = [
+    { key:'t1', label:'0% – ', maxKey:'t1Max', defaultMax:50, defaultColor:'#34C759', suffix:'%' },
+    { key:'t2', label:'', maxKey:'t2Max', defaultMax:70, defaultColor:'#f0d860', suffix:'%', prevKey:'t1Max' },
+    { key:'t3', label:'', maxKey:'t3Max', defaultMax:100, defaultColor:'#f0a860', suffix:'%', prevKey:'t2Max' },
+    { key:'t4', label:'100%+', defaultColor:'#ff5c5c', isOver:true },
+  ];
+  rows.innerHTML = tiers.map((t, i) => {
+    const color = sc[t.key+'Color'] || t.defaultColor;
+    const max = sc[t.maxKey] ?? t.defaultMax;
+    const prevMax = t.prevKey ? (sc[t.prevKey] ?? (i===1?50:70)) : null;
+    const rangeLabel = t.isOver ? '100%+' : (prevMax!==null ? prevMax+'% – '+max+'%' : '0% – '+max+'%');
+    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+      '<input type="color" id="sc2_'+t.key+'_color" value="'+color+'" style="width:38px;height:38px;border-radius:8px;border:2px solid var(--border);cursor:pointer;padding:2px;background:var(--surface2)" onchange="updateSpendColorPreview2()">' +
+      (t.isOver
+        ? '<div style="flex:1;font-size:13px;font-weight:600;color:'+color+'" id="sc2_'+t.key+'_label">100%+ · Over budget</div>'
+        : '<div style="flex:1;display:flex;align-items:center;gap:6px">' +
+            (prevMax!==null ? '<span style="font-size:12px;color:var(--muted)">'+(sc[t.prevKey]??prevMax)+'% –</span>' : '<span style="font-size:12px;color:var(--muted)">0% –</span>') +
+            '<input type="number" id="sc2_'+t.key+'_max" value="'+(sc[t.maxKey]??t.defaultMax)+'" min="1" max="100" style="width:52px;margin-bottom:0;padding:6px 8px;font-size:13px" onchange="updateSpendColorPreview2()">' +
+            '<span style="font-size:12px;color:var(--muted)">%</span>' +
+          '</div>') +
+    '</div>';
+  }).join('');
+}
+
+function updateSpendColorPreview2() {
+  const tiers = ['t1','t2','t3','t4'];
+  tiers.forEach(t => {
+    const colorEl = document.getElementById('sc2_'+t+'_color');
+    const labelEl = document.getElementById('sc2_'+t+'_label');
+    if (colorEl && labelEl) labelEl.style.color = colorEl.value;
+  });
+}
+
+function saveSpendColorsFrom(containerId) {
+  const sc = state.spendingColors || {};
+  ['t1','t2','t3','t4'].forEach(t => {
+    const c = document.getElementById('sc2_'+t+'_color');
+    const m = document.getElementById('sc2_'+t+'_max');
+    if (c) sc[t+'Color'] = c.value;
+    if (m) sc[t+'Max'] = parseInt(m.value) || undefined;
+  });
+  state.spendingColors = sc;
 }
 
 function buildSpendColorRows() {
@@ -3785,59 +4103,6 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 window.addEventListener('resize', () => { updateHeader(); renderContent(); });
 
 
-// ── Swipe to dismiss modals ───────────────────────────────────────────────────
-function initSwipeToDismiss() {
-  document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    const modal = overlay.querySelector('.modal');
-    if (!modal) return;
-    let startY = 0, currentY = 0, isDragging = false, startedOnHandle = false;
-
-    function onStart(e) {
-      const touch = e.touches ? e.touches[0] : e;
-      // Only initiate swipe if touch started on the handle or within top 32px of modal
-      const rect = modal.getBoundingClientRect();
-      const relY = touch.clientY - rect.top;
-      startedOnHandle = relY <= 32;
-      if (!startedOnHandle) return;
-      startY = touch.clientY;
-      currentY = 0;
-      isDragging = true;
-      modal.style.transition = 'none';
-    }
-
-    function onMove(e) {
-      if (!isDragging || !startedOnHandle) return;
-      const touch = e.touches ? e.touches[0] : e;
-      const dy = touch.clientY - startY;
-      if (dy < 0) { isDragging = false; return; } // upward swipe — ignore
-      currentY = dy;
-      modal.style.transform = 'translateY(' + currentY + 'px)';
-      overlay.style.background = 'rgba(0,0,0,' + Math.max(0, 0.7 - (currentY/400)*0.7) + ')';
-      if (e.cancelable) e.preventDefault();
-    }
-
-    function onEnd() {
-      if (!isDragging) return;
-      isDragging = false;
-      startedOnHandle = false;
-      modal.style.transition = '';
-      overlay.style.background = '';
-      if (currentY > 100) {
-        overlay.classList.remove('open');
-        modal.style.transform = '';
-      } else {
-        modal.style.transform = '';
-      }
-      currentY = 0;
-    }
-
-    modal.addEventListener('touchstart', onStart, { passive: true });
-    modal.addEventListener('touchmove', onMove, { passive: false });
-    modal.addEventListener('touchend', onEnd);
-  });
-}
-
-
 
 // ── Welcome onboarding ────────────────────────────────────────────────────────
 const ONBOARDED_KEY = 'spendly_onboarded';
@@ -4076,18 +4341,35 @@ function skipLock() {
 function updateDots(n, error) {
   for (let i = 0; i < 4; i++) {
     const d = document.getElementById('dot' + i);
+    const wasFilled = d.classList.contains('filled');
     d.classList.toggle('filled', i < n);
     d.classList.toggle('error', error);
+    // Re-trigger pop animation on newly filled dot
+    if (!wasFilled && i < n && !error) {
+      d.classList.remove('filled');
+      void d.offsetWidth; // force reflow
+      d.classList.add('filled');
+    }
   }
 }
-function lockTap(digit) {
+let _lockTapTime = 0; // guard against ontouchstart + onclick double-fire
+function lockTap(digit, btn) {
+  const now = Date.now();
+  if (now - _lockTapTime < 300) return; // ignore duplicate within 300ms
+  _lockTapTime = now;
   if (lockBuf.length >= 4) return;
+  if (btn) { btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 120); }
   lockBuf += digit;
   document.getElementById('lockError').textContent = '';
   updateDots(lockBuf.length, false);
   if (lockBuf.length === 4) setTimeout(() => processPin(lockBuf), 80);
 }
-function lockBackspace() {
+let _lockBackTime = 0;
+function lockBackspace(btn) {
+  const now = Date.now();
+  if (now - _lockBackTime < 300) return;
+  _lockBackTime = now;
+  if (btn) { btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 120); }
   if (lockBuf.length > 0) { lockBuf = lockBuf.slice(0,-1); updateDots(lockBuf.length, false); }
 }
 function processPin(pin) {
@@ -4135,20 +4417,121 @@ function unlockApp() {
   updateDots(0, false);
   renderContent();
 }
+const BIOM_CRED_KEY = 'spendly_biom_cred'; // stored credential ID (base64)
+
+function isBiometricSupported() {
+  return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.get);
+}
+
+function hasBiometricRegistered() {
+  return !!localStorage.getItem(BIOM_CRED_KEY);
+}
+
+// Show Face ID prompt vs PIN pad based on state
+function showPinFallback() {
+  const faceIdPrompt = document.getElementById('faceIdPrompt');
+  const pinPad = document.getElementById('pinPad');
+  if (faceIdPrompt) faceIdPrompt.style.display = 'none';
+  if (pinPad) { pinPad.style.display = 'flex'; pinPad.style.flexDirection = 'column'; pinPad.style.alignItems = 'center'; }
+  updateDots(0, false);
+}
+
+function showFaceIdPrompt() {
+  const faceIdPrompt = document.getElementById('faceIdPrompt');
+  const pinPad = document.getElementById('pinPad');
+  if (faceIdPrompt) faceIdPrompt.style.display = 'flex';
+  if (pinPad) pinPad.style.display = 'none';
+}
+
+// Register biometric credential (one-time setup)
+async function registerBiometric() {
+  if (!isBiometricSupported()) return false;
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const userId = crypto.getRandomValues(new Uint8Array(16));
+    const credential = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: 'Spendly', id: location.hostname },
+        user: { id: userId, name: 'spendly-user', displayName: 'Spendly User' },
+        pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          userVerification: 'required',
+          residentKey: 'preferred',
+        },
+        timeout: 60000,
+      }
+    });
+    if (!credential) return false;
+    // Store credential ID as base64
+    const credId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+    localStorage.setItem(BIOM_CRED_KEY, credId);
+    return true;
+  } catch(e) {
+    console.log('Biometric registration cancelled or failed:', e.message);
+    return false;
+  }
+}
+
+// Verify biometric (called on each unlock)
+async function triggerBiometric() {
+  if (!isBiometricSupported()) { showPinFallback(); return; }
+  const storedCredId = localStorage.getItem(BIOM_CRED_KEY);
+  if (!storedCredId) {
+    // Not registered yet — try to register now
+    const btn = document.getElementById('faceIdBtn');
+    if (btn) { btn.style.opacity = '0.5'; btn.disabled = true; }
+    const registered = await registerBiometric();
+    if (btn) { btn.style.opacity = '1'; btn.disabled = false; }
+    if (registered) {
+      // Auto-unlock after successful registration
+      showToast('✅ Face ID set up! You\'ll use it to unlock Spendly from now on.', 3000);
+      unlockApp();
+    } else {
+      showPinFallback();
+    }
+    return;
+  }
+  // Existing credential — authenticate
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const credIdBytes = Uint8Array.from(atob(storedCredId), c => c.charCodeAt(0));
+    const btn = document.getElementById('faceIdBtn');
+    if (btn) { btn.style.opacity = '0.5'; }
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        allowCredentials: [{ id: credIdBytes, type: 'public-key' }],
+        userVerification: 'required',
+        timeout: 60000,
+      }
+    });
+    if (btn) { btn.style.opacity = '1'; }
+    if (assertion) {
+      unlockApp();
+    } else {
+      showPinFallback();
+    }
+  } catch(e) {
+    // User cancelled or Face ID failed — fall back to PIN
+    const btn = document.getElementById('faceIdBtn');
+    if (btn) { btn.style.opacity = '1'; }
+    showPinFallback();
+  }
+}
+
 async function offerBiometric() {
-  // Skip WebAuthn/passkey — it shows an intrusive iOS sheet we can't suppress
-  // PIN-only is cleaner and more reliable on iOS
+  // After PIN setup — offer to set up Face ID
+  if (!isBiometricSupported() || hasBiometricRegistered()) { unlockApp(); return; }
+  // Show offer toast
+  showToast('💡 Set up Face ID for faster unlock — go to Settings to enable it.', 4000);
   unlockApp();
 }
-async function triggerBiometric() {
-  // Not used — biometric via WebAuthn shows unavoidable iOS passkey sheet
-  document.getElementById('lockBiomBtn').style.display = 'none';
-  document.getElementById('lockBiomSmall').style.display = 'none';
-}
+
 async function initLock() {
   const hasPin = !!localStorage.getItem(LOCK_KEY);
   const skipped = !!localStorage.getItem(LOCK_SKIPPED);
-  // First-time user — no PIN set yet, no skip: show setup
   if (!hasPin && !skipped) {
     lockMode = 'setup'; lockBuf = ''; lockFirst = '';
     document.getElementById('lockIcon').textContent = '🔐';
@@ -4156,24 +4539,72 @@ async function initLock() {
     document.getElementById('lockSub').textContent = 'Set a 4-digit PIN to protect your data';
     document.getElementById('lockHint').style.display = 'block';
     document.getElementById('lockSkipBtn').style.display = 'block';
+    showPinFallback();
     updateDots(0, false);
     showLockScreen();
     return;
   }
-  // Returning user with PIN — show unlock screen
   if (hasPin) {
     lockMode = 'unlock'; lockBuf = '';
     document.getElementById('lockIcon').textContent = '🔒';
     document.getElementById('lockTitle').textContent = 'Hey, ' + (state.appName || 'there') + ' 👋';
-    document.getElementById('lockSub').textContent = 'Enter your PIN to continue';
-    document.getElementById('lockHint').style.display = 'none';
     document.getElementById('lockSkipBtn').style.display = 'none';
     document.getElementById('lockBiomBtn').style.display = 'none';
     document.getElementById('lockBiomSmall').style.display = 'none';
     updateDots(0, false);
-    showLockScreen();
+
+    const hasBiom = isBiometricSupported() && hasBiometricRegistered();
+    if (hasBiom) {
+      document.getElementById('lockSub').textContent = 'Scanning...';
+      showFaceIdPrompt();
+      showLockScreen();
+      // Auto-trigger Face ID after screen is visible
+      setTimeout(() => triggerBiometric(), 400);
+    } else {
+      document.getElementById('lockSub').textContent = 'Enter your PIN to continue';
+      showPinFallback();
+      showLockScreen();
+    }
   }
-  // skipped = no lock screen shown, app opens normally
+}
+
+// Enable/disable Face ID from Settings
+async function setupFaceId() {
+  if (!isBiometricSupported()) {
+    showToast('Face ID / biometric authentication is not supported on this device.', 3000);
+    return;
+  }
+  if (hasBiometricRegistered()) {
+    if (confirm('Remove Face ID from Spendly? You\'ll use your PIN to unlock.')) {
+      localStorage.removeItem(BIOM_CRED_KEY);
+      renderSettingsFaceIdBtn();
+      showToast('Face ID removed. PIN will be used to unlock.', 3000);
+    }
+    return;
+  }
+  const registered = await registerBiometric();
+  if (registered) {
+    renderSettingsFaceIdBtn();
+    showToast('✅ Face ID enabled! It will be used to unlock Spendly from now on.', 3000);
+  } else {
+    showToast('Face ID setup was cancelled. Your PIN still works.', 3000);
+  }
+}
+
+function renderSettingsFaceIdBtn() {
+  const has = hasBiometricRegistered();
+  const label = document.getElementById('faceIdSettingsLabel');
+  const chevron = document.getElementById('faceIdSettingsChevron');
+  if (label) {
+    label.textContent = has ? 'Disable Face ID' : 'Enable Face ID';
+    label.style.color = has ? 'var(--red)' : 'var(--text)';
+  }
+  if (chevron) chevron.style.color = has ? 'var(--red)' : 'var(--muted)';
+  // Legacy btn (kept for compat)
+  const el = document.getElementById('faceIdSettingsBtn');
+  if (!el) return;
+  el.textContent = has ? '🔓 Disable Face ID' : '🔐 Enable Face ID';
+  el.style.color = has ? 'var(--red)' : 'var(--accent)';
 }
 
 
@@ -6826,17 +7257,31 @@ function openRecurringList() {
   if (recs.length === 0) {
     content.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">No recurring expenses yet.<br>Tap + to add one.</div>';
   } else {
-    content.innerHTML = recs.map(r => {
+    // Sort by next due date ascending
+    const sorted = recs.slice().sort((a, b) => {
+      const na = getRecNextDate(a);
+      const nb = getRecNextDate(b);
+      if (!na && !nb) return 0;
+      if (!na) return 1;
+      if (!nb) return -1;
+      return na - nb;
+    });
+    const todayStr_ = todayStr();
+    content.innerHTML = sorted.map(r => {
       const cat = catById(r.categoryId);
       const next = getRecNextDate(r);
       const nextStr = next ? next.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'}) : '—';
+      const nextDate = next ? dateToStr(next) : '';
+      const isDueToday = nextDate === todayStr_;
+      const isOverdue = next && next < new Date(todayStr_ + 'T00:00:00');
       const autoOffsetBadge = r.autoOffset ? '<span style="font-size:9px;background:rgba(79,142,247,0.15);color:var(--accent);border-radius:4px;padding:2px 5px;font-weight:700;margin-left:4px">🏦 AUTO</span>' : '';
       const pausedBadge = r.active===false ? '<span style="font-size:10px;color:var(--orange);font-weight:400"> · Paused</span>' : '';
+      const dueBadge = isDueToday ? '<span style="font-size:9px;background:rgba(52,199,89,0.15);color:#34C759;border-radius:4px;padding:2px 5px;font-weight:700;margin-left:4px">TODAY</span>' : '';
       return '<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--surface2)">' +
         '<div style="width:38px;height:38px;border-radius:10px;background:'+(cat?cat.color:'#888')+'22;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+(cat?cat.icon:'❓')+'</div>' +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-size:13px;font-weight:600">' + r.name + autoOffsetBadge + pausedBadge + '</div>' +
-          '<div style="font-size:11px;color:var(--muted)">' + recFreqLabel(r) + ' · Next: ' + nextStr + '</div>' +
+          '<div style="font-size:13px;font-weight:600">' + r.name + autoOffsetBadge + pausedBadge + dueBadge + '</div>' +
+          '<div style="font-size:11px;color:'+(isDueToday?'#34C759':isOverdue?'var(--red)':'var(--muted)')+'">' + recFreqLabel(r) + ' · Next: ' + nextStr + '</div>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0">' +
           '<div style="text-align:right">' +
@@ -6851,6 +7296,12 @@ function openRecurringList() {
   openModal('recurringListModal');
 }
 
+function repairMissingRecurringExpenses() {
+  // Now just delegates to applyRecurringExpenses which uses expense-existence
+  // as its only guard — no lastAdded dependency
+  applyRecurringExpenses();
+}
+
 function applyRecurringExpenses() {
   const recs = (state.recurringExpenses||[]).filter(r=>r.active!==false);
   if (!recs.length) return;
@@ -6860,12 +7311,19 @@ function applyRecurringExpenses() {
   const autoOffsetFired = [];
 
   recs.forEach(r => {
-    // Don't add twice on same day
-    if (r.lastAdded === todayDateStr) return;
     const next = getRecNextDate(r);
     if (!next) return;
     next.setHours(0,0,0,0);
     if (next.getTime() !== today.getTime()) return;
+
+    // Skip if expense already exists for today — this is the only guard we need
+    const alreadyExists = (state.expenses||[]).some(e =>
+      e.categoryId === r.categoryId &&
+      e.date === todayDateStr &&
+      e.amount === r.amount &&
+      e.name === r.name
+    );
+    if (alreadyExists) { r.lastAdded = todayDateStr; return; }
 
     // Add the expense dated today
     state.expenses.push({
@@ -6878,23 +7336,24 @@ function applyRecurringExpenses() {
     r.lastAdded = todayDateStr;
     added = true;
 
-    // Auto offset withdrawal if enabled
+    // Auto offset withdrawal if enabled — guard against duplicates too
     if (r.autoOffset) {
       if (!state.offsetTransactions) state.offsetTransactions = [];
-      state.offsetTransactions.push({
-        id: uid(),
-        type: 'withdrawal',
-        amount: r.amount,
-        date: todayDateStr,
-        note: r.name + ' (auto)',
-      });
-      autoOffsetFired.push({ name: r.name, amount: r.amount });
+      const offsetExists = (state.offsetTransactions||[]).some(t =>
+        t.date === todayDateStr && t.amount === r.amount && t.note === r.name + ' (auto)'
+      );
+      if (!offsetExists) {
+        state.offsetTransactions.push({
+          id: uid(), type: 'withdrawal', amount: r.amount,
+          date: todayDateStr, note: r.name + ' (auto)',
+        });
+        autoOffsetFired.push({ name: r.name, amount: r.amount });
+      }
     }
   });
 
   if (added) {
     saveState();
-    // Show toast for auto offset withdrawals
     if (autoOffsetFired.length > 0) {
       setTimeout(() => {
         autoOffsetFired.forEach(item => {
@@ -6905,8 +7364,47 @@ function applyRecurringExpenses() {
   }
 }
 
+function showRecurringDiagnostic() {
+  const todayStr_ = todayStr();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const recs = (state.recurringExpenses || []).filter(r => r.active !== false);
+  let html = '<div style="font-size:11px;font-family:monospace;background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:14px;max-height:60vh;overflow-y:auto">';
+  html += '<div style="font-weight:700;margin-bottom:8px;font-size:12px">Today: ' + todayStr_ + '</div>';
+  recs.forEach(r => {
+    const next = getRecNextDate(r);
+    const nextStr = next ? dateToStr(next) : 'null';
+    const isToday = next && next.getTime() === today.getTime();
+    const expExists = (state.expenses || []).some(e =>
+      e.categoryId === r.categoryId && e.date === todayStr_ &&
+      e.amount === r.amount && e.name === r.name
+    );
+    html += '<div style="border-top:1px solid var(--border);padding:6px 0;color:' + (isToday ? 'var(--accent)' : 'var(--text)') + '">' +
+      '<strong>' + r.name + '</strong><br>' +
+      'freq: ' + r.frequency + (r.monthDay ? ' day=' + r.monthDay : '') + (r.weekday !== undefined ? ' wd=' + r.weekday : '') + '<br>' +
+      'nextDate computed: ' + nextStr + '<br>' +
+      'lastAdded: ' + (r.lastAdded || 'null') + '<br>' +
+      'expenseExists: ' + expExists + '<br>' +
+      (isToday ? '→ DUE TODAY' : '') +
+    '</div>';
+  });
+  html += '</div>';
+  html += '<button class="btn-primary" onclick="repairMissingRecurringExpenses();renderContent();closeModal(\'recurringDiagModal\');showToast(\'✅ Repair ran\',2000)">Run repair now</button>';
+  html += '<button class="btn-ghost" onclick="closeModal(\'recurringDiagModal\')">Close</button>';
+
+  // Create modal dynamically
+  let m = document.getElementById('recurringDiagModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'recurringDiagModal';
+    m.className = 'modal-overlay';
+    m.innerHTML = '<div class="modal"><div class="modal-handle"></div><div class="modal-title">Recurring diagnostic</div><div id="recurringDiagContent"></div></div>';
+    document.body.appendChild(m);
+  }
+  document.getElementById('recurringDiagContent').innerHTML = html;
+  openModal('recurringDiagModal');
+}
+
 function showToast(message, duration) {
-  duration = duration || 3000;
   // Remove existing toast
   const existing = document.getElementById('spendlyToast');
   if (existing) existing.remove();
@@ -7523,36 +8021,64 @@ function initModalSwipeDown() {
     const modal = overlay.querySelector('.modal');
     if (!modal || modal.dataset.swipeInit) return;
     modal.dataset.swipeInit = '1';
-    let startY = 0, dragging = false, scrolled = false;
-    modal.addEventListener('touchstart', e => {
+
+    // ── Restructure modal for sticky header + scrollable body ──────────────
+    if (!modal.querySelector('.modal-body')) {
+      // Find the handle and title
+      const handle = modal.querySelector('.modal-handle');
+      const title = modal.querySelector('.modal-title');
+
+      // Build sticky header wrapper
+      const handleBar = document.createElement('div');
+      handleBar.className = 'modal-handle-bar';
+      if (handle) handleBar.appendChild(handle);
+
+      // Wrap remaining content in scrollable body
+      const body = document.createElement('div');
+      body.className = 'modal-body';
+      // Move all remaining children into body
+      while (modal.firstChild) body.appendChild(modal.firstChild);
+
+      modal.appendChild(handleBar);
+      if (title) handleBar.appendChild(title);
+      modal.appendChild(body);
+    }
+
+    // ── Swipe to close — handle bar only ───────────────────────────────────
+    const handleBar = modal.querySelector('.modal-handle-bar');
+    if (!handleBar) return;
+
+    let startY = 0, currentY = 0, dragging = false;
+
+    handleBar.addEventListener('touchstart', e => {
       startY = e.touches[0].clientY;
+      currentY = 0;
       dragging = true;
-      scrolled = false;
       modal.style.transition = 'none';
     }, { passive: true });
-    modal.addEventListener('touchmove', e => {
+
+    handleBar.addEventListener('touchmove', e => {
       if (!dragging) return;
       const dy = e.touches[0].clientY - startY;
-      // Only drag if swiping down from top (not scrolling content)
-      const scrollable = modal.querySelector('[style*="overflow-y:auto"], [style*="overflow-y: auto"]');
-      const atTop = !scrollable || scrollable.scrollTop === 0;
-      if (dy > 8 && atTop) {
-        modal.style.transform = 'translateY(' + dy + 'px)';
-      } else if (dy < -8) {
-        scrolled = true;
-      }
-    }, { passive: true });
-    modal.addEventListener('touchend', e => {
+      if (dy < 0) { dragging = false; modal.style.transition = ''; return; }
+      currentY = dy;
+      modal.style.transform = 'translateY(' + dy + 'px)';
+      overlay.style.background = 'rgba(0,0,0,' + Math.max(0, 0.7 - (dy / 400) * 0.7) + ')';
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+
+    handleBar.addEventListener('touchend', () => {
       if (!dragging) return;
       dragging = false;
       modal.style.transition = '';
-      const dy = e.changedTouches[0].clientY - startY;
-      if (dy > 80 && !scrolled) {
-        modal.style.transform = '';
+      overlay.style.background = '';
+      if (currentY > 80) {
         overlay.classList.remove('open');
+        modal.style.transform = '';
       } else {
         modal.style.transform = '';
       }
+      currentY = 0;
     });
   });
 }
@@ -8096,13 +8622,9 @@ function saveSuperSettings() {
   saveState(); closeModal('superModal'); renderContent();
 }
 
-function openPropertySettings() {
-  const mg = state.mortgage || {};
-  const mortgageBalance = getEstimatedBalance().balance || mg.currentBalance || 0;
-  document.getElementById('propertyValue').value = state.propertyValue || '';
-  document.getElementById('propertyValDate').value = todayStr();
-  document.getElementById('propertyValNote').value = '';
-  // Live equity preview
+let _editingValDate = null; // null = new, date string = editing existing
+
+function _propertyModalSetup(mortgageBalance) {
   const updatePreview = () => {
     const val = parseFloat(document.getElementById('propertyValue').value) || 0;
     const equity = Math.max(val - mortgageBalance, 0);
@@ -8115,8 +8637,36 @@ function openPropertySettings() {
   };
   document.getElementById('propertyValue').oninput = updatePreview;
   updatePreview();
-  document.getElementById('propertyModal').classList.add('open');
+  openModal('propertyModal');
   setTimeout(() => document.getElementById('propertyValue').focus(), 350);
+}
+
+function openPropertySettings() {
+  _editingValDate = null;
+  const mg = state.mortgage || {};
+  const mortgageBalance = getEstimatedBalance().balance || mg.currentBalance || 0;
+  document.getElementById('propertyModalTitle').textContent = 'Log property valuation';
+  document.getElementById('propertyValue').value = state.propertyValue || '';
+  document.getElementById('propertyValDate').value = todayStr();
+  document.getElementById('propertyValNote').value = '';
+  document.getElementById('propertyValSaveBtn').textContent = 'Save valuation';
+  document.getElementById('propertyValDeleteBtn').style.display = 'none';
+  _propertyModalSetup(mortgageBalance);
+}
+
+function openEditValuation(date) {
+  const entry = (state.propertyHistory || []).find(h => h.date === date);
+  if (!entry) return;
+  _editingValDate = date;
+  const mg = state.mortgage || {};
+  const mortgageBalance = getEstimatedBalance().balance || mg.currentBalance || 0;
+  document.getElementById('propertyModalTitle').textContent = 'Edit valuation';
+  document.getElementById('propertyValue').value = entry.value || '';
+  document.getElementById('propertyValDate').value = entry.date || '';
+  document.getElementById('propertyValNote').value = entry.note || '';
+  document.getElementById('propertyValSaveBtn').textContent = 'Save changes';
+  document.getElementById('propertyValDeleteBtn').style.display = 'block';
+  _propertyModalSetup(mortgageBalance);
 }
 
 function savePropertyValue() {
@@ -8124,18 +8674,28 @@ function savePropertyValue() {
   const date = document.getElementById('propertyValDate').value || todayStr();
   const note = document.getElementById('propertyValNote').value.trim();
   if (!value) return;
-  state.propertyValue = value;
   if (!state.propertyHistory) state.propertyHistory = [];
-  // Don't duplicate same date
-  const existing = state.propertyHistory.find(h => h.date === date);
-  if (existing) {
-    existing.value = value; existing.note = note;
+  if (_editingValDate) {
+    const idx = state.propertyHistory.findIndex(h => h.date === _editingValDate);
+    if (idx >= 0) state.propertyHistory[idx] = { value, date, note };
   } else {
-    state.propertyHistory.push({ date, value, note });
-    state.propertyHistory.sort((a,b) => b.date.localeCompare(a.date));
+    const existing = state.propertyHistory.find(h => h.date === date);
+    if (existing) { existing.value = value; existing.note = note; }
+    else state.propertyHistory.push({ date, value, note });
   }
+  state.propertyHistory.sort((a,b) => b.date.localeCompare(a.date));
+  state.propertyValue = state.propertyHistory[0].value;
   saveState(); closeModal('propertyModal'); renderContent();
-  showToast('🏠 Property valuation saved — $' + Math.round(value).toLocaleString('en-AU'), 3000);
+  showToast('🏠 Valuation saved — $' + Math.round(value).toLocaleString('en-AU'), 3000);
+}
+
+function deletePropertyValuation() {
+  if (!_editingValDate) return;
+  if (!confirm('Delete this valuation?')) return;
+  state.propertyHistory = (state.propertyHistory || []).filter(h => h.date !== _editingValDate);
+  state.propertyValue = state.propertyHistory.length > 0 ? state.propertyHistory[0].value : 0;
+  saveState(); closeModal('propertyModal'); renderContent();
+  showToast('Valuation deleted', 2000);
 }
 
 // ── Render Net Worth ──────────────────────────────────────────────────────────
@@ -8148,6 +8708,7 @@ function renderNetWorth() {
 
   // Components
   const mortgageBalance = getEstimatedBalance().balance || mg.currentBalance || 0;
+  const propertyValue = state.propertyValue || 0;
   const propertyEquity = Math.max(propertyValue - mortgageBalance, 0);
   const offsetBalance = getOffsetBalance();
   const portfolioValue = (state.portfolio||[]).reduce((s,h)=>s+h.units*h.currentPrice,0);
@@ -8262,12 +8823,15 @@ function renderNetWorth() {
     propHistory.slice().reverse().forEach((h, i) => {
       const equity = Math.max(h.value - mortgageBalance, 0);
       html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;' + (i>0?'border-top:1px solid var(--surface3)':'') + '">' +
-        '<div>' +
+        '<div style="flex:1;min-width:0">' +
           '<div style="font-size:13px;font-weight:600">' + fmt0(h.value) + '</div>' +
           '<div style="font-size:11px;color:var(--muted)">' + new Date(h.date+'T00:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) + (h.note ? ' · ' + h.note : '') + '</div>' +
         '</div>' +
-        '<div style="text-align:right">' +
-          '<div style="font-size:11px;font-weight:600;color:var(--accent)">Equity ' + fmt0(equity) + '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<div style="text-align:right">' +
+            '<div style="font-size:11px;font-weight:600;color:var(--accent)">Equity ' + fmt0(equity) + '</div>' +
+          '</div>' +
+          '<button onclick="openEditValuation(\'' + h.date + '\')" style="background:var(--surface2);border:none;border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--font);flex-shrink:0">Edit</button>' +
         '</div>' +
       '</div>';
     });
@@ -8771,7 +9335,7 @@ async function init() {
       const ls = document.getElementById('launchScreen');
       if (ls) { ls.style.opacity = '0'; ls.style.display = 'none'; }
       if (!initWelcome()) { showApp(); initLock(); }
-      applyRecurringExpenses();
+      repairMissingRecurringExpenses(); applyRecurringExpenses();
       recordTodayOffsetSaving();
       setTimeout(checkCycleComplete, 2000);
       setTimeout(checkExpiryAlerts, 1500);
@@ -8801,7 +9365,7 @@ async function init() {
       const ls = document.getElementById('launchScreen');
       if (ls) { ls.style.opacity = '0'; ls.style.display = 'none'; }
       if (!initWelcome()) { showApp(); initLock(); }
-      applyRecurringExpenses();
+      repairMissingRecurringExpenses(); applyRecurringExpenses();
       recordTodayOffsetSaving();
       setTimeout(checkCycleComplete, 2000);
       setTimeout(checkExpiryAlerts, 1500);
@@ -8819,13 +9383,10 @@ async function init() {
 // Apply mode-specific UI — hide cloud-only elements in local mode
 function applyModeUI() {
   const isCloud = SPENDLY_MODE === 'cloud';
-  // Sync indicator
   const syncEl = document.getElementById('syncIndicator');
   if (syncEl) syncEl.style.display = isCloud ? '' : 'none';
-  // Sign out button
   const signOutBtn = document.getElementById('signOutBtn');
   if (signOutBtn) signOutBtn.style.display = isCloud ? '' : 'none';
-  // Auth screen (only relevant in cloud mode)
   const authScreen = document.getElementById('authScreen');
   if (authScreen && !isCloud) authScreen.style.display = 'none';
 }
@@ -8921,6 +9482,8 @@ function autoBackup() {
     sessionStorage.setItem(BACKUP_KEY2, data);
   } catch(e) {}
 }
+let _lastRecurringCheckDate = todayStr();
+
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     autoBackup();
@@ -8928,7 +9491,20 @@ document.addEventListener('visibilitychange', () => {
     // Don't re-lock if auth screen is showing
     const authVisible = !document.getElementById('authScreen').classList.contains('hidden');
     if (authVisible) return;
-    // Re-lock if user has a PIN set and app was hidden
+
+    // Check if the day has changed since last recurring run — fire missed recurring if so
+    const currentDate = todayStr();
+    if (currentDate !== _lastRecurringCheckDate) {
+      _lastRecurringCheckDate = currentDate;
+      // Reload state from cloud first so we're working with fresh data,
+      // then apply recurring on top of it
+      loadState().then(() => {
+        applyRecurringExpenses();
+        recordTodayOffsetSaving();
+        renderContent();
+      });
+    }
+
     const hasPin = !!localStorage.getItem(LOCK_KEY);
     const lockEl = document.getElementById('lockScreen');
     const isAlreadyLocked = lockEl && lockEl.style.display !== 'none';
@@ -8936,13 +9512,22 @@ document.addEventListener('visibilitychange', () => {
       lockMode = 'unlock'; lockBuf = '';
       document.getElementById('lockIcon').textContent = '🔒';
       document.getElementById('lockTitle').textContent = 'Hey, ' + (state.appName || 'there') + ' 👋';
-      document.getElementById('lockSub').textContent = 'Enter your PIN to continue';
       document.getElementById('lockHint').style.display = 'none';
       document.getElementById('lockSkipBtn').style.display = 'none';
       document.getElementById('lockBiomBtn').style.display = 'none';
       document.getElementById('lockBiomSmall').style.display = 'none';
       updateDots(0, false);
-      showLockScreen();
+      const hasBiom = isBiometricSupported() && hasBiometricRegistered();
+      if (hasBiom) {
+        document.getElementById('lockSub').textContent = 'Scanning...';
+        showFaceIdPrompt();
+        showLockScreen();
+        setTimeout(() => triggerBiometric(), 400);
+      } else {
+        document.getElementById('lockSub').textContent = 'Enter your PIN to continue';
+        showPinFallback();
+        showLockScreen();
+      }
     }
   }
 });
